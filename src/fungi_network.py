@@ -60,7 +60,7 @@ def get_transforms(data):
     width, height = 224, 224
     if data == 'train':
         return Compose([
-            RandomResizedCrop(width, height, scale=(0.8, 1.0)),
+            RandomResizedCrop((width, height), scale=(0.8, 1.0)),
             HorizontalFlip(p=0.5),
             VerticalFlip(p=0.5),
             RandomBrightnessContrast(p=0.2),
@@ -142,7 +142,7 @@ def train_fungi_network(data_file, image_path, checkpoint_dir):
 
     # Define Optimization, Scheduler, and Criterion
     optimizer = Adam(model.parameters(), lr=0.001)
-    scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.9, patience=1, verbose=True, eps=1e-6)
+    scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.9, patience=1, eps=1e-6)
     criterion = nn.CrossEntropyLoss()
 
     # Early stopping setup
