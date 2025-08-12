@@ -1,13 +1,19 @@
+import os
+from pathlib import Path
 import random
 import pandas as pd
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
 
 def do_random_fungi_predictions():
     n_classes = 183
     method_name = 'random_fungi_predictions'
 
-    metadata_file = 'C:/data/Danish Fungi/DF-10-06-2025/testuploads/Puffballs/metadata.csv'
-    predictions_out = 'C:/data/Danish Fungi/DF-10-06-2025/testuploads/predictions_6.csv'
+    metadata_file = ROOT_DIR / "data" / "metadata" / "metadata.csv"
+    predictions_out = ROOT_DIR / "output" / "predictions_6.csv"
+
+    predictions_out.parent.mkdir(parents=True, exist_ok=True)
+    print(predictions_out)
 
     f_out = open(predictions_out, 'w')
     f_out.write(f"{method_name}\n")
