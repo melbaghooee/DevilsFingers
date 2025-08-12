@@ -72,6 +72,59 @@ def get_dinov2_feature_dim(model_name):
         return 1536
     else:
         raise ValueError(f"Unknown DINOv2 model: {model_name}")
+    
+
+def extract_metadata_features(df, metadata_file):
+    """
+    Pre-process metadata features from the DataFrame and save to a HDF5 file.
+    """
+    # check if metadata_file already exist
+    if os.path.exists(metadata_file):
+        print(f"Metadata features file {metadata_file} already exists. Skipping extraction.")
+        return
+
+    # define categorical and numeric columns
+    categorical_columns = ["Habitat", "Substrate"]
+    numeric_columns = ["Latitude", "Longitude"]
+
+    df_processed = df.copy()
+
+    # handle missing value in columns
+    for col in categorical_columns:
+        df_processed[col] = df_processed[col].fillna("Unknown")
+        df_processed[col] = df_processed[col].astype("category")
+
+    for col in numeric_columns:
+        df_processed[col] = df_processed[col].fillna(df_processed[col].mean())
+
+    # encode categorical columns
+    for col in categorical_columns:
+        df_processed[col] = df_processed[col].cat.codes
+
+    # process date column
+    col = "eventDate"
+    df_processed[col] = pd.to_datetime(df_processed[col], errors="coerce")
+    df_processed[col] = df_processed[col].fillna(df_processed[col].mean())
+
+    df_processed["eventYear"] = df_processed["eventDate"].dt.year.astype("float32")
+    df_processed["eventMonth"] = df_processed["eventDate"].dt.month.astype("float32")
+    df_processed["eventDay"] = df_processed["eventDate"].dt.day.astype("float32")
+
+    # save processed DataFrame to HDF5
+    with h5py.File(metadata_file, "w") as h5f:
+        h5f.create_dataset('filenames', data=df_processed['filename_index'].values, dtype=h5py.string_dtype())
+
+        for col in categorical_columns:
+            h5f.create_dataset(col, data=df_processed[col].values, dtype='int32')
+        for col in numeric_columns:
+            h5f.create_dataset(col, data=df_processed[col].values, dtype='float32')
+        
+        h5f.create_dataset("eventYear", data=df_processed["eventYear"].values, dtype='float32')
+        h5f.create_dataset("eventMonth", data=df_processed["eventMonth"].values, dtype='float32')
+        h5f.create_dataset("eventDay", data=df_processed["eventDay"].values, dtype='float32')
+        
+    print(f"Metadata features saved to {metadata_file}")
+
 
 def extract_dinov2_features(df, image_path, features_file, dinov2_model_name='dinov2_vitg14'):
     """
@@ -613,10 +666,18 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
     
     train_features_file = os.path.join(features_dir, 'train_features.h5')
     val_features_file = os.path.join(features_dir, 'val_features.h5')
-    
+
+    metadata_dir = os.path.join(ROOT_DIR, 'data', 'metadata')
+    ensure_folder(metadata_dir)
+
+    train_metadata_file = os.path.join(metadata_dir, 'train_metadata.h5')
+    val_metadata_file = os.path.join(metadata_dir, 'val_metadata.h5')
+
     print("=== Feature Extraction Phase ===")
     extract_dinov2_features(train_df, image_path, train_features_file, dinov2_model_name)
     extract_dinov2_features(val_df, image_path, val_features_file, dinov2_model_name)
+    extract_metadata_features(train_df, train_metadata_file)
+    extract_metadata_features(val_df, val_metadata_file)
     print("=== Feature Extraction Complete ===")
 
     # Branch based on classifier type
@@ -789,9 +850,14 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
     features_dir = os.path.join(ROOT_DIR, 'data', 'features', dinov2_model_name)
     ensure_folder(features_dir)
     test_features_file = os.path.join(features_dir, 'test_features.h5')
+
+    metadata_dir = os.path.join(ROOT_DIR, 'data', 'metadata')
+    ensure_folder(metadata_dir)
+    test_metadata_file = os.path.join(metadata_dir, 'test_metadata.h5')
     
     print("=== Test Feature Extraction ===")
     extract_dinov2_features(test_df, image_path, test_features_file, dinov2_model_name)
+    extract_metadata_features(test_df, test_metadata_file)
     print("=== Test Feature Extraction Complete ===")
     
     # Branch based on classifier type
