@@ -258,6 +258,57 @@ class LinearClassifier(nn.Module):
     def forward(self, features):
         return self.classifier(features)
 
+class TransformerClassifier(nn.Module):
+    """
+    Transformer-based classifier for pre-computed features.
+    Uses multi-head self-attention to learn feature relationships.
+    """
+    def __init__(self, feature_dim, num_classes, num_heads=1, num_layers=1, hidden_dim=512, dropout=0.1):
+        super(TransformerClassifier, self).__init__()
+        
+        # Input projection to match transformer hidden dimension
+        self.input_projection = nn.Linear(feature_dim, hidden_dim)
+        
+        # Positional encoding (not needed for single feature vector, but kept for extensibility)
+        self.pos_encoding = nn.Parameter(torch.randn(1, 1, hidden_dim))
+        
+        # Transformer encoder layers
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=hidden_dim,
+            nhead=num_heads,
+            dim_feedforward=hidden_dim * 4,
+            dropout=dropout,
+            activation='gelu',
+            batch_first=True
+        )
+        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        
+        # Classification head
+        self.classifier = nn.Sequential(
+            nn.LayerNorm(hidden_dim),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim // 2, num_classes)
+        )
+        
+    def forward(self, features):
+        # Project input features to hidden dimension
+        x = self.input_projection(features)  # [batch_size, hidden_dim]
+        
+        # Add sequence dimension and positional encoding
+        x = x.unsqueeze(1) + self.pos_encoding  # [batch_size, 1, hidden_dim]
+        
+        # Apply transformer
+        x = self.transformer(x)  # [batch_size, 1, hidden_dim]
+        
+        # Remove sequence dimension and classify
+        x = x.squeeze(1)  # [batch_size, hidden_dim]
+        output = self.classifier(x)
+        
+        return output
+
 def load_features_and_labels(features_file):
     """Load features and labels from HDF5 file into numpy arrays."""
     with h5py.File(features_file, 'r') as h5f:
@@ -341,6 +392,202 @@ def evaluate_xgboost_on_test_set(test_features_file, checkpoint_dir, session_nam
     
     print(f"XGBoost results saved to {output_csv_path}")
 
+def train_transformer_classifier(train_features_file, val_features_file, checkpoint_dir, feature_dim, num_classes):
+    """Train Transformer classifier on pre-computed features."""
+    print("=== Training Transformer Classifier ===")
+    
+    # Initialize DataLoaders with pre-computed features
+    train_dataset = FungiFeatureDataset(train_features_file)
+    valid_dataset = FungiFeatureDataset(val_features_file)
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
+    valid_loader = DataLoader(valid_dataset, batch_size=32, shuffle=False, num_workers=4)
+    
+    # Set up device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Using device: {device}")
+    
+    # Create Transformer model
+    model = TransformerClassifier(
+        feature_dim=feature_dim,
+        num_classes=num_classes,
+        num_heads=8,
+        num_layers=3,
+        hidden_dim=512,
+        dropout=0.1
+    )
+    model.to(device)
+    
+    # Define Optimization, Scheduler, and Criterion
+    optimizer = Adam(model.parameters(), lr=0.00001, weight_decay=1e-4)
+    scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=3, verbose=True, eps=1e-8)
+    criterion = nn.CrossEntropyLoss()
+    
+    # Training setup
+    patience = 15
+    patience_counter = 0
+    best_loss = np.inf
+    best_accuracy = 0.0
+    max_epochs = 100
+    
+    # Initialize CSV logger
+    csv_file_path = os.path.join(checkpoint_dir, 'transformer_train.csv')
+    initialize_csv_logger(csv_file_path)
+    
+    # Training Loop
+    epoch_pbar = tqdm.tqdm(range(max_epochs), desc="Transformer Training Progress")
+    
+    for epoch in epoch_pbar:
+        model.train()
+        train_loss = 0.0
+        total_correct_train = 0
+        total_train_samples = 0
+        
+        # Start epoch timer
+        epoch_start_time = time.time()
+        
+        # Training Loop
+        train_pbar = tqdm.tqdm(train_loader, desc=f"Epoch {epoch + 1}/{max_epochs} - Training", leave=False)
+        for features, labels, _ in train_pbar:
+            features, labels = features.to(device), labels.to(device)
+            optimizer.zero_grad()
+            outputs = model(features)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            
+            train_loss += loss.item()
+            
+            # Calculate train accuracy
+            total_correct_train += (outputs.argmax(1) == labels).sum().item()
+            total_train_samples += labels.size(0)
+            
+            # Update progress bar with current metrics
+            current_train_acc = total_correct_train / total_train_samples
+            current_train_loss = train_loss / (train_pbar.n + 1)
+            train_pbar.set_postfix({
+                'Loss': f'{current_train_loss:.4f}', 
+                'Acc': f'{current_train_acc:.4f}'
+            })
+        
+        # Calculate overall train accuracy and average loss
+        train_accuracy = total_correct_train / total_train_samples
+        avg_train_loss = train_loss / len(train_loader)
+
+        # Validation Loop
+        model.eval()
+        val_loss = 0.0
+        total_correct_val = 0
+        total_val_samples = 0
+        
+        with torch.no_grad():
+            val_pbar = tqdm.tqdm(valid_loader, desc=f"Epoch {epoch + 1}/{max_epochs} - Validation", leave=False)
+            for features, labels, _ in val_pbar:
+                features, labels = features.to(device), labels.to(device)
+                outputs = model(features)
+                val_loss += criterion(outputs, labels).item()
+                
+                # Calculate validation accuracy
+                total_correct_val += (outputs.argmax(1) == labels).sum().item()
+                total_val_samples += labels.size(0)
+                
+                # Update progress bar with current metrics
+                current_val_acc = total_correct_val / total_val_samples
+                current_val_loss = val_loss / (val_pbar.n + 1)
+                val_pbar.set_postfix({
+                    'Loss': f'{current_val_loss:.4f}', 
+                    'Acc': f'{current_val_acc:.4f}'
+                })
+
+        # Calculate overall validation accuracy and average loss
+        val_accuracy = total_correct_val / total_val_samples
+        avg_val_loss = val_loss / len(valid_loader)
+
+        # Stop epoch timer and calculate elapsed time
+        epoch_end_time = time.time()
+        epoch_time = epoch_end_time - epoch_start_time
+
+        # Update main epoch progress bar
+        epoch_pbar.set_postfix({
+            'Train_Loss': f'{avg_train_loss:.4f}',
+            'Train_Acc': f'{train_accuracy:.4f}', 
+            'Val_Loss': f'{avg_val_loss:.4f}',
+            'Val_Acc': f'{val_accuracy:.4f}',
+            'Time': f'{epoch_time:.1f}s'
+        })
+        
+        # Log epoch metrics to the CSV file
+        log_epoch_to_csv(csv_file_path, epoch + 1, epoch_time, avg_train_loss, train_accuracy, avg_val_loss, val_accuracy)
+
+        # Save Models Based on Accuracy and Loss
+        if val_accuracy > best_accuracy:
+            best_accuracy = val_accuracy
+            torch.save(model.state_dict(), os.path.join(checkpoint_dir, "best_transformer_accuracy.pth"))
+            print(f"Epoch {epoch + 1}: Best transformer accuracy updated to {best_accuracy:.4f}")
+        
+        if avg_val_loss < best_loss:
+            best_loss = avg_val_loss
+            torch.save(model.state_dict(), os.path.join(checkpoint_dir, "best_transformer_loss.pth"))
+            print(f"Epoch {epoch + 1}: Best transformer loss updated to {best_loss:.4f}")
+            patience_counter = 0  # Reset patience counter
+        else:
+            patience_counter += 1
+
+        # Update learning rate scheduler
+        scheduler.step(avg_val_loss)
+
+        # Early stopping condition
+        if patience_counter >= patience:
+            epoch_pbar.set_description("Training stopped early")
+            print(f"Early stopping triggered. No improvement in validation loss for {patience} epochs.")
+            break
+    
+    # Close the epoch progress bar
+    epoch_pbar.close()
+    print("=== Transformer Training Complete ===")
+
+def evaluate_transformer_on_test_set(test_features_file, checkpoint_dir, session_name, feature_dim, num_classes):
+    """Evaluate Transformer classifier on test set."""
+    print("=== Evaluating Transformer on Test Set ===")
+    
+    # Load test data
+    test_dataset = FungiFeatureDataset(test_features_file)
+    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=4)
+    
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    # Create and load the Transformer model
+    model = TransformerClassifier(
+        feature_dim=feature_dim,
+        num_classes=num_classes,
+        num_heads=8,
+        num_layers=3,
+        hidden_dim=512,
+        dropout=0.1
+    )
+    
+    # Load the best model
+    best_model_path = os.path.join(checkpoint_dir, "best_transformer_accuracy.pth")
+    model.load_state_dict(torch.load(best_model_path))
+    model.to(device)
+    model.eval()
+    
+    # Make predictions
+    results = []
+    with torch.no_grad():
+        for features, labels, filenames in tqdm.tqdm(test_loader, desc="Evaluating Transformer"):
+            features = features.to(device)
+            outputs = model(features).argmax(1).cpu().numpy()
+            results.extend(zip(filenames, outputs))
+    
+    # Save results
+    output_csv_path = os.path.join(checkpoint_dir, "test_predictions.csv")
+    with open(output_csv_path, mode="w", newline="") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow([session_name])  # Write session name as the first line
+        writer.writerows(results)  # Write filenames and predictions
+    
+    print(f"Transformer results saved to {output_csv_path}")
+
 def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name='dinov2_vitg14', classifier_type='linear'):
     """
     Train the DINOv2 + classifier and save the best models based on validation accuracy and loss.
@@ -376,6 +623,12 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
     if classifier_type == 'xgboost':
         # Train XGBoost classifier
         train_xgboost_classifier(train_features_file, val_features_file, checkpoint_dir)
+        return
+    elif classifier_type == 'transformer':
+        # Train Transformer classifier
+        num_classes = len(train_df['taxonID_index'].unique())
+        feature_dim = get_dinov2_feature_dim(dinov2_model_name)
+        train_transformer_classifier(train_features_file, val_features_file, checkpoint_dir, feature_dim, num_classes)
         return
     
     # Continue with linear classifier training
@@ -546,6 +799,14 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
         # Evaluate XGBoost classifier
         evaluate_xgboost_on_test_set(test_features_file, checkpoint_dir, session_name)
         return
+    elif classifier_type == 'transformer':
+        # Evaluate Transformer classifier
+        feature_dim = get_dinov2_feature_dim(dinov2_model_name)
+        evaluate_transformer_on_test_set(test_features_file, checkpoint_dir, session_name, feature_dim, num_classes=183)
+        return
+    
+    # Continue with linear classifier evaluation
+        return
     
     # Continue with linear classifier evaluation
     test_dataset = FungiFeatureDataset(test_features_file)
@@ -582,7 +843,7 @@ if __name__ == "__main__":
                         choices=['dinov2_vits14', 'dinov2_vitb14', 'dinov2_vitl14', 'dinov2_vitg14'],
                         help='DINOv2 model size to use (default: dinov2_vitg14)')
     parser.add_argument('--classifier', type=str, default='linear',
-                        choices=['linear', 'xgboost'],
+                        choices=['linear', 'xgboost', 'transformer'],
                         help='Classifier type to use (default: linear)')
     parser.add_argument('--data_file', type=str, default=None,
                         help='Path to metadata CSV file (default: data/metadata/metadata.csv)')
