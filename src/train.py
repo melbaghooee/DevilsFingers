@@ -22,6 +22,9 @@ from collections import Counter
 import h5py
 from torchvision import transforms
 import argparse
+import xgboost as xgb
+import joblib
+from sklearn.metrics import accuracy_score
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
@@ -255,10 +258,93 @@ class LinearClassifier(nn.Module):
     def forward(self, features):
         return self.classifier(features)
 
-def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name='dinov2_vitg14'):
+def load_features_and_labels(features_file):
+    """Load features and labels from HDF5 file into numpy arrays."""
+    with h5py.File(features_file, 'r') as h5f:
+        features = h5f['features'][:]
+        labels = h5f['labels'][:]
+        filenames = [fname.decode() for fname in h5f['filenames'][:]]
+    return features, labels, filenames
+
+def train_xgboost_classifier(train_features_file, val_features_file, checkpoint_dir):
+    """Train XGBoost classifier on pre-computed features."""
+    print("=== Training XGBoost Classifier ===")
+    
+    # Load training data
+    X_train, y_train, _ = load_features_and_labels(train_features_file)
+    X_val, y_val, _ = load_features_and_labels(val_features_file)
+    
+    # Remove samples with invalid labels
+    valid_train_mask = y_train >= 0
+    valid_val_mask = y_val >= 0
+    
+    X_train = X_train[valid_train_mask]
+    y_train = y_train[valid_train_mask]
+    X_val = X_val[valid_val_mask]
+    y_val = y_val[valid_val_mask]
+    
+    print(f"Training samples: {len(X_train)}")
+    print(f"Validation samples: {len(X_val)}")
+    
+    # Create XGBoost classifier
+    xgb_model = xgb.XGBClassifier(
+        n_estimators=1000,
+        max_depth=6,
+        learning_rate=0.1,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        random_state=777,
+        early_stopping_rounds=50,
+        eval_metric='mlogloss',
+        n_jobs=4
+    )
+    
+    # Train the model
+    xgb_model.fit(
+        X_train, y_train,
+        eval_set=[(X_val, y_val)],
+        verbose=True
+    )
+    
+    # Evaluate on validation set
+    val_pred = xgb_model.predict(X_val)
+    val_accuracy = accuracy_score(y_val, val_pred)
+    print(f"Validation accuracy: {val_accuracy:.4f}")
+    
+    # Save the model
+    model_path = os.path.join(checkpoint_dir, "best_xgboost_model.pkl")
+    joblib.dump(xgb_model, model_path)
+    print(f"XGBoost model saved to {model_path}")
+    
+    return xgb_model
+
+def evaluate_xgboost_on_test_set(test_features_file, checkpoint_dir, session_name):
+    """Evaluate XGBoost classifier on test set."""
+    print("=== Evaluating XGBoost on Test Set ===")
+    
+    # Load the trained model
+    model_path = os.path.join(checkpoint_dir, "best_xgboost_model.pkl")
+    xgb_model = joblib.load(model_path)
+    
+    # Load test data
+    X_test, _, filenames = load_features_and_labels(test_features_file)
+    
+    # Make predictions
+    test_pred = xgb_model.predict(X_test)
+    
+    # Save results
+    output_csv_path = os.path.join(checkpoint_dir, "test_predictions.csv")
+    with open(output_csv_path, mode="w", newline="") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow([session_name])  # Write session name as the first line
+        writer.writerows(zip(filenames, test_pred))  # Write filenames and predictions
+    
+    print(f"XGBoost results saved to {output_csv_path}")
+
+def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name='dinov2_vitg14', classifier_type='linear'):
     """
-    Train the DINOv2 + Linear network and save the best models based on validation accuracy and loss.
-    Incorporates early stopping with a patience of 10 epochs.
+    Train the DINOv2 + classifier and save the best models based on validation accuracy and loss.
+    Supports both linear and XGBoost classifiers.
     """
     # Ensure checkpoint directory exists
     ensure_folder(checkpoint_dir)
@@ -286,6 +372,13 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
     extract_dinov2_features(val_df, image_path, val_features_file, dinov2_model_name)
     print("=== Feature Extraction Complete ===")
 
+    # Branch based on classifier type
+    if classifier_type == 'xgboost':
+        # Train XGBoost classifier
+        train_xgboost_classifier(train_features_file, val_features_file, checkpoint_dir)
+        return
+    
+    # Continue with linear classifier training
     # Initialize DataLoaders with pre-computed features
     train_dataset = FungiFeatureDataset(train_features_file)
     valid_dataset = FungiFeatureDataset(val_features_file)
@@ -424,9 +517,10 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
     # Close the epoch progress bar
     epoch_pbar.close()
 
-def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_name, dinov2_model_name='dinov2_vitg14'):
+def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_name, dinov2_model_name='dinov2_vitg14', classifier_type='linear'):
     """
-    Evaluate Linear classifier on the test set and save predictions to a CSV file.
+    Evaluate classifier on the test set and save predictions to a CSV file.
+    Supports both linear and XGBoost classifiers.
     """
     # Ensure checkpoint directory exists
     ensure_folder(checkpoint_dir)
@@ -447,6 +541,13 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
     extract_dinov2_features(test_df, image_path, test_features_file, dinov2_model_name)
     print("=== Test Feature Extraction Complete ===")
     
+    # Branch based on classifier type
+    if classifier_type == 'xgboost':
+        # Evaluate XGBoost classifier
+        evaluate_xgboost_on_test_set(test_features_file, checkpoint_dir, session_name)
+        return
+    
+    # Continue with linear classifier evaluation
     test_dataset = FungiFeatureDataset(test_features_file)
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=4)
 
@@ -476,10 +577,13 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
 
 if __name__ == "__main__":
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description="Train DINOv2 + Linear classifier for fungi classification")
+    parser = argparse.ArgumentParser(description="Train DINOv2 + classifier for fungi classification")
     parser.add_argument('--dinov2_model', type=str, default='dinov2_vitg14',
                         choices=['dinov2_vits14', 'dinov2_vitb14', 'dinov2_vitl14', 'dinov2_vitg14'],
                         help='DINOv2 model size to use (default: dinov2_vitg14)')
+    parser.add_argument('--classifier', type=str, default='linear',
+                        choices=['linear', 'xgboost'],
+                        help='Classifier type to use (default: linear)')
     parser.add_argument('--data_file', type=str, default=None,
                         help='Path to metadata CSV file (default: data/metadata/metadata.csv)')
     parser.add_argument('--image_path', type=str, default=None,
@@ -506,7 +610,8 @@ if __name__ == "__main__":
     # Set session name based on model if not provided
     if args.session is None:
         model_size = args.dinov2_model.replace('dinov2_', '').upper()
-        session = f"DinoV2{model_size}Linear"
+        classifier_name = args.classifier.capitalize()
+        session = f"DinoV2{model_size}{classifier_name}"
     else:
         session = args.session
 
@@ -514,12 +619,13 @@ if __name__ == "__main__":
     checkpoint_dir = ROOT_DIR / 'results' / session
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"Starting training with DINOv2 + Linear model...")
+    print(f"Starting training with DINOv2 + {args.classifier.capitalize()} classifier...")
     print(f"DINOv2 Model: {args.dinov2_model}")
+    print(f"Classifier: {args.classifier}")
     print(f"Session: {session}")
     print(f"Data file: {data_file}")
     print(f"Image path: {image_path}")
     print(f"Results will be saved to: {checkpoint_dir}")
     
-    train_fungi_network(data_file, image_path, checkpoint_dir, args.dinov2_model)
-    evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session, args.dinov2_model)
+    train_fungi_network(data_file, image_path, checkpoint_dir, args.dinov2_model, args.classifier)
+    evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session, args.dinov2_model, args.classifier)
