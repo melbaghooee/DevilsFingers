@@ -19,6 +19,9 @@ from PIL import Image
 import time
 import csv
 from collections import Counter
+import h5py
+from torchvision import transforms
+import argparse
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
@@ -53,6 +56,79 @@ def log_epoch_to_csv(file_path, epoch, epoch_time, train_loss, train_accuracy, v
     with open(file_path, mode='a', newline='') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow([epoch, epoch_time, val_loss, val_accuracy, train_loss, train_accuracy])
+
+def get_dinov2_feature_dim(model_name):
+    """Get the feature dimension for a given DINOv2 model."""
+    if 'vits14' in model_name:
+        return 384
+    elif 'vitb14' in model_name:
+        return 768
+    elif 'vitl14' in model_name:
+        return 1024
+    elif 'vitg14' in model_name:
+        return 1536
+    else:
+        raise ValueError(f"Unknown DINOv2 model: {model_name}")
+
+def extract_dinov2_features(df, image_path, features_file, dinov2_model_name='dinov2_vitg14'):
+    """
+    Extract DINOv2 features for all images and save them to HDF5 file.
+    """
+    if os.path.exists(features_file):
+        print(f"Features file {features_file} already exists. Skipping feature extraction.")
+        return
+    
+    print(f"Extracting DINOv2 features to {features_file}...")
+    
+    # Load DINOv2 model
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    dinov2_model = torch.hub.load('facebookresearch/dinov2', dinov2_model_name)
+    dinov2_model.eval()
+    dinov2_model.to(device)
+    
+    # Freeze all parameters
+    for param in dinov2_model.parameters():
+        param.requires_grad = False
+    
+    # Get feature dimension
+    feature_dim = get_dinov2_feature_dim(dinov2_model_name)
+    
+    # Preprocessing for DINOv2
+    preprocess = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    
+    filenames = df['filename_index'].values
+    labels = df['taxonID_index'].values
+    
+    # Create HDF5 file
+    with h5py.File(features_file, 'w') as h5f:
+        features_ds = h5f.create_dataset('features', shape=(len(filenames), feature_dim), dtype='float32')
+        labels_ds = h5f.create_dataset('labels', shape=(len(filenames),), dtype='int32')
+        filenames_ds = h5f.create_dataset('filenames', shape=(len(filenames),), dtype=h5py.string_dtype())
+        
+        with torch.no_grad():
+            for i, (fname, label) in enumerate(tqdm.tqdm(zip(filenames, labels), total=len(filenames), desc="Extracting features")):
+                # Load and preprocess image
+                img_path = os.path.join(image_path, fname)
+                image = Image.open(img_path).convert('RGB')
+                img_tensor = preprocess(image).unsqueeze(0).to(device)
+                
+                # Extract features
+                features = dinov2_model(img_tensor).cpu().numpy().squeeze()
+                
+                # Store in HDF5
+                features_ds[i] = features
+                labels_ds[i] = int(label) if not pd.isnull(label) else -1
+                filenames_ds[i] = fname
+    
+    print(f"Features saved to {features_file}")
+    
+    # Clean up GPU memory
+    del dinov2_model
+    torch.cuda.empty_cache() if torch.cuda.is_available() else None
 
 def get_transforms(data):
     """
@@ -107,6 +183,27 @@ class FungiDataset(Dataset):
 
         return image, label, file_path
 
+class FungiFeatureDataset(Dataset):
+    """
+    Dataset that loads pre-computed DINOv2 features from HDF5 file.
+    """
+    def __init__(self, features_file):
+        self.features_file = features_file
+        with h5py.File(features_file, 'r') as h5f:
+            self.length = h5f['features'].shape[0]
+            self.filenames = [fname.decode() for fname in h5f['filenames'][:]]
+            self.labels = h5f['labels'][:]
+    
+    def __len__(self):
+        return self.length
+    
+    def __getitem__(self, idx):
+        with h5py.File(self.features_file, 'r') as h5f:
+            features = torch.tensor(h5f['features'][idx], dtype=torch.float32)
+            label = int(self.labels[idx])
+            filename = self.filenames[idx]
+        return features, label, filename
+
 class DinoV2Linear(nn.Module):
     """
     DINOv2-based model with a trainable linear classifier.
@@ -147,7 +244,18 @@ class DinoV2Linear(nn.Module):
         output = self.classifier(features)
         return output
 
-def train_fungi_network(data_file, image_path, checkpoint_dir):
+class LinearClassifier(nn.Module):
+    """
+    Simple linear classifier for pre-computed features.
+    """
+    def __init__(self, feature_dim, num_classes):
+        super(LinearClassifier, self).__init__()
+        self.classifier = nn.Linear(feature_dim, num_classes)
+    
+    def forward(self, features):
+        return self.classifier(features)
+
+def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name='dinov2_vitg14'):
     """
     Train the DINOv2 + Linear network and save the best models based on validation accuracy and loss.
     Incorporates early stopping with a patience of 10 epochs.
@@ -166,23 +274,35 @@ def train_fungi_network(data_file, image_path, checkpoint_dir):
     print('Training size', len(train_df))
     print('Validation size', len(val_df))
 
-    # Initialize DataLoaders
-    train_dataset = FungiDataset(train_df, image_path, transform=get_transforms(data='train'))
-    valid_dataset = FungiDataset(val_df, image_path, transform=get_transforms(data='valid'))
+    # Feature extraction step - extract and save DINOv2 features
+    features_dir = os.path.join(ROOT_DIR, 'data', 'features', dinov2_model_name)
+    ensure_folder(features_dir)
+    
+    train_features_file = os.path.join(features_dir, 'train_features.h5')
+    val_features_file = os.path.join(features_dir, 'val_features.h5')
+    
+    print("=== Feature Extraction Phase ===")
+    extract_dinov2_features(train_df, image_path, train_features_file, dinov2_model_name)
+    extract_dinov2_features(val_df, image_path, val_features_file, dinov2_model_name)
+    print("=== Feature Extraction Complete ===")
+
+    # Initialize DataLoaders with pre-computed features
+    train_dataset = FungiFeatureDataset(train_features_file)
+    valid_dataset = FungiFeatureDataset(val_features_file)
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
     valid_loader = DataLoader(valid_dataset, batch_size=32, shuffle=False, num_workers=4)
 
     # Network Setup
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    # Create DINOv2 + Linear model
+    # Create Linear classifier model (features are pre-computed)
     num_classes = len(train_df['taxonID_index'].unique())
-    model = DinoV2Linear(num_classes=num_classes, dinov2_model_name='dinov2_vitg14')
+    feature_dim = get_dinov2_feature_dim(dinov2_model_name)
+    model = LinearClassifier(feature_dim, num_classes)
     model.to(device)
 
     # Define Optimization, Scheduler, and Criterion
-    # Only optimize the Linear parameters (DINOv2 is frozen)
-    optimizer = Adam(model.classifier.parameters(), lr=0.001)
+    optimizer = Adam(model.parameters(), lr=0.001)
     scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.9, patience=1, verbose=True, eps=1e-6)
     criterion = nn.CrossEntropyLoss()
 
@@ -207,10 +327,10 @@ def train_fungi_network(data_file, image_path, checkpoint_dir):
         
         # Training Loop
         train_pbar = tqdm.tqdm(train_loader, desc=f"Epoch {epoch + 1}/{max_epochs} - Training", leave=False)
-        for images, labels, _ in train_pbar:
-            images, labels = images.to(device), labels.to(device)
+        for features, labels, _ in train_pbar:
+            features, labels = features.to(device), labels.to(device)
             optimizer.zero_grad()
-            outputs = model(images)
+            outputs = model(features)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
@@ -241,9 +361,9 @@ def train_fungi_network(data_file, image_path, checkpoint_dir):
         # Validation Loop
         with torch.no_grad():
             val_pbar = tqdm.tqdm(valid_loader, desc=f"Epoch {epoch + 1}/{max_epochs} - Validation", leave=False)
-            for images, labels, _ in val_pbar:
-                images, labels = images.to(device), labels.to(device)
-                outputs = model(images)
+            for features, labels, _ in val_pbar:
+                features, labels = features.to(device), labels.to(device)
+                outputs = model(features)
                 val_loss += criterion(outputs, labels).item()
                 
                 # Calculate validation accuracy
@@ -304,9 +424,9 @@ def train_fungi_network(data_file, image_path, checkpoint_dir):
     # Close the epoch progress bar
     epoch_pbar.close()
 
-def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_name):
+def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_name, dinov2_model_name='dinov2_vitg14'):
     """
-    Evaluate DINOv2 + Linear network on the test set and save predictions to a CSV file.
+    Evaluate Linear classifier on the test set and save predictions to a CSV file.
     """
     # Ensure checkpoint directory exists
     ensure_folder(checkpoint_dir)
@@ -317,13 +437,24 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
 
     df = pd.read_csv(data_file)
     test_df = df[df['filename_index'].str.startswith('fungi_test')]
-    test_dataset = FungiDataset(test_df, image_path, transform=get_transforms(data='valid'))
+    
+    # Extract features for test set
+    features_dir = os.path.join(ROOT_DIR, 'data', 'features', dinov2_model_name)
+    ensure_folder(features_dir)
+    test_features_file = os.path.join(features_dir, 'test_features.h5')
+    
+    print("=== Test Feature Extraction ===")
+    extract_dinov2_features(test_df, image_path, test_features_file, dinov2_model_name)
+    print("=== Test Feature Extraction Complete ===")
+    
+    test_dataset = FungiFeatureDataset(test_features_file)
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=4)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    # Create and load the DINOv2 + Linear model
-    model = DinoV2Linear(num_classes=183, dinov2_model_name='dinov2_vitg14')  # Number of classes
+    # Create and load the Linear classifier model
+    feature_dim = get_dinov2_feature_dim(dinov2_model_name)
+    model = LinearClassifier(feature_dim, num_classes=183)
     model.load_state_dict(torch.load(best_trained_model))
     model.to(device)
 
@@ -331,9 +462,9 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
     results = []
     model.eval()
     with torch.no_grad():
-        for images, labels, filenames in tqdm.tqdm(test_loader, desc="Evaluating"):
-            images = images.to(device)
-            outputs = model(images).argmax(1).cpu().numpy()
+        for features, labels, filenames in tqdm.tqdm(test_loader, desc="Evaluating"):
+            features = features.to(device)
+            outputs = model(features).argmax(1).cpu().numpy()
             results.extend(zip(filenames, outputs))  # Store filenames and predictions only
 
     # Save Results to CSV
@@ -344,25 +475,51 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
     print(f"Results saved to {output_csv_path}")
 
 if __name__ == "__main__":
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Train DINOv2 + Linear classifier for fungi classification")
+    parser.add_argument('--dinov2_model', type=str, default='dinov2_vitg14',
+                        choices=['dinov2_vits14', 'dinov2_vitb14', 'dinov2_vitl14', 'dinov2_vitg14'],
+                        help='DINOv2 model size to use (default: dinov2_vitg14)')
+    parser.add_argument('--data_file', type=str, default=None,
+                        help='Path to metadata CSV file (default: data/metadata/metadata.csv)')
+    parser.add_argument('--image_path', type=str, default=None,
+                        help='Path to fungi images directory (default: data/FungiImages)')
+    parser.add_argument('--session', type=str, default=None,
+                        help='Session name for experiment (default: auto-generated based on model)')
+    
+    args = parser.parse_args()
+    
     # Set seed for reproducibility
     seed_torch(777)
     
-    # Path to fungi images
-    image_path = ROOT_DIR / 'data' / 'FungiImages'
-    # Path to metadata file
-    data_file = ROOT_DIR / 'data' / 'metadata' / 'metadata.csv'
+    # Set default paths if not provided
+    if args.data_file is None:
+        data_file = ROOT_DIR / 'data' / 'metadata' / 'metadata.csv'
+    else:
+        data_file = Path(args.data_file)
+        
+    if args.image_path is None:
+        image_path = ROOT_DIR / 'data' / 'FungiImages'
+    else:
+        image_path = Path(args.image_path)
 
-    # Session name: Change session name for every experiment! 
-    # Session name will be saved as the first line of the prediction file
-    session = "DinoV2VitG14Linear"
+    # Set session name based on model if not provided
+    if args.session is None:
+        model_size = args.dinov2_model.replace('dinov2_', '').upper()
+        session = f"DinoV2{model_size}Linear"
+    else:
+        session = args.session
 
     # Folder for results of this experiment based on session name:
     checkpoint_dir = ROOT_DIR / 'results' / session
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Starting training with DINOv2 + Linear model...")
+    print(f"DINOv2 Model: {args.dinov2_model}")
     print(f"Session: {session}")
+    print(f"Data file: {data_file}")
+    print(f"Image path: {image_path}")
     print(f"Results will be saved to: {checkpoint_dir}")
     
-    train_fungi_network(data_file, image_path, checkpoint_dir)
-    evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session)
+    train_fungi_network(data_file, image_path, checkpoint_dir, args.dinov2_model)
+    evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session, args.dinov2_model)
