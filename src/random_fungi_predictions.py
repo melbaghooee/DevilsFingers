@@ -6,8 +6,8 @@ def do_random_fungi_predictions():
     n_classes = 183
     method_name = 'random_fungi_predictions'
 
-    metadata_file = 'C:/data/Danish Fungi/DF-10-06-2025/testuploads/Puffballs/metadata.csv'
-    predictions_out = 'C:/data/Danish Fungi/DF-10-06-2025/testuploads/predictions_6.csv'
+    metadata_file = 'data/metadata.csv'
+    predictions_out = 'results/predictions_random.csv'
 
     f_out = open(predictions_out, 'w')
     f_out.write(f"{method_name}\n")
