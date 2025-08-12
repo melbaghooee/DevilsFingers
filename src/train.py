@@ -399,8 +399,8 @@ def train_transformer_classifier(train_features_file, val_features_file, checkpo
     # Initialize DataLoaders with pre-computed features
     train_dataset = FungiFeatureDataset(train_features_file)
     valid_dataset = FungiFeatureDataset(val_features_file)
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
-    valid_loader = DataLoader(valid_dataset, batch_size=32, shuffle=False, num_workers=4)
+    train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True, num_workers=4)
+    valid_loader = DataLoader(valid_dataset, batch_size=256, shuffle=False, num_workers=4)
     
     # Set up device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -551,7 +551,7 @@ def evaluate_transformer_on_test_set(test_features_file, checkpoint_dir, session
     
     # Load test data
     test_dataset = FungiFeatureDataset(test_features_file)
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=4)
+    test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
@@ -635,8 +635,8 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
     # Initialize DataLoaders with pre-computed features
     train_dataset = FungiFeatureDataset(train_features_file)
     valid_dataset = FungiFeatureDataset(val_features_file)
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
-    valid_loader = DataLoader(valid_dataset, batch_size=32, shuffle=False, num_workers=4)
+    train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True, num_workers=4)
+    valid_loader = DataLoader(valid_dataset, batch_size=256, shuffle=False, num_workers=4)
 
     # Network Setup
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -810,7 +810,7 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
     
     # Continue with linear classifier evaluation
     test_dataset = FungiFeatureDataset(test_features_file)
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=4)
+    test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
