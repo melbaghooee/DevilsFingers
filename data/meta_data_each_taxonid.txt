@@ -1,0 +1,183 @@
+TaxonID 0.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 1.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 2.0 : {'eventDate', 'Substrate', 'Longitude', 'Latitude'}
+TaxonID 3.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 4.0 : {'Habitat', 'Latitude', 'Substrate', 'Longitude'}
+TaxonID 5.0 : {'Longitude', 'eventDate', 'Latitude', 'Substrate', 'Habitat'}
+TaxonID 6.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 7.0 : {'eventDate', 'Latitude', 'Habitat', 'Longitude'}
+TaxonID 8.0 : {'Latitude', 'Habitat'}
+TaxonID 9.0 : {'Longitude', 'eventDate', 'Latitude', 'Substrate', 'Habitat'}
+TaxonID 10.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 11.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 12.0 : {'eventDate', 'Latitude', 'Longitude'}
+TaxonID 13.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 14.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 15.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 16.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 17.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 18.0 : {'Longitude', 'eventDate', 'Latitude', 'Substrate', 'Habitat'}
+TaxonID 19.0 : {'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 20.0 : {'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 21.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 22.0 : {'eventDate', 'Substrate', 'Longitude', 'Latitude'}
+TaxonID 23.0 : {'eventDate', 'Habitat', 'Longitude'}
+TaxonID 24.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 25.0 : {'Longitude', 'eventDate', 'Latitude', 'Substrate', 'Habitat'}
+TaxonID 26.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 27.0 : {'eventDate', 'Habitat', 'Substrate', 'Latitude'}
+TaxonID 28.0 : {'eventDate', 'Latitude', 'Longitude', 'Substrate'}
+TaxonID 29.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 30.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 31.0 : {'eventDate', 'Latitude', 'Habitat', 'Longitude'}
+TaxonID 32.0 : {'Habitat', 'Substrate', 'Longitude'}
+TaxonID 33.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 34.0 : {'eventDate', 'Substrate', 'Habitat', 'Longitude'}
+TaxonID 35.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 36.0 : {'Latitude', 'Substrate'}
+TaxonID 37.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 38.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 39.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 40.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 41.0 : {'eventDate', 'Habitat'}
+TaxonID 42.0 : {'eventDate', 'Habitat'}
+TaxonID 43.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 44.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 45.0 : {'Habitat', 'Latitude', 'Substrate', 'eventDate'}
+TaxonID 46.0 : {'eventDate', 'Latitude', 'Substrate'}
+TaxonID 47.0 : {'Substrate', 'Habitat', 'Latitude'}
+TaxonID 48.0 : {'Habitat', 'eventDate', 'Substrate', 'Latitude'}
+TaxonID 49.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 50.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 51.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 52.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 53.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 54.0 : {'eventDate', 'Habitat', 'Longitude', 'Latitude'}
+TaxonID 55.0 : {'Latitude', 'Habitat', 'Longitude', 'Substrate'}
+TaxonID 56.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 57.0 : {'eventDate', 'Habitat', 'Longitude', 'Latitude'}
+TaxonID 58.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 59.0 : {'Habitat', 'Longitude'}
+TaxonID 60.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 61.0 : {'eventDate', 'Latitude', 'Longitude', 'Substrate'}
+TaxonID 62.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 63.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 64.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 65.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 66.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 67.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 68.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 69.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 70.0 : {'Substrate', 'Habitat', 'Longitude'}
+TaxonID 71.0 : {'Latitude', 'Substrate', 'Longitude'}
+TaxonID 72.0 : {'Longitude', 'eventDate', 'Latitude', 'Substrate', 'Habitat'}
+TaxonID 73.0 : {'Longitude', 'eventDate', 'Latitude', 'Substrate', 'Habitat'}
+TaxonID 74.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 75.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 76.0 : {'eventDate'}
+TaxonID 77.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 78.0 : {'Substrate', 'Habitat', 'Longitude', 'Latitude'}
+TaxonID 79.0 : {'Substrate', 'Habitat', 'Longitude', 'Latitude'}
+TaxonID 80.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 81.0 : {'Habitat', 'eventDate', 'Latitude', 'Longitude'}
+TaxonID 82.0 : {'Substrate', 'Habitat'}
+TaxonID 83.0 : {'Substrate', 'Habitat', 'Longitude'}
+TaxonID 84.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 85.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 86.0 : {'eventDate', 'Latitude', 'Longitude', 'Substrate'}
+TaxonID 87.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 88.0 : {'Substrate', 'Habitat', 'Longitude'}
+TaxonID 89.0 : {'eventDate', 'Substrate', 'Longitude', 'Latitude'}
+TaxonID 90.0 : {'Habitat', 'Latitude', 'Substrate'}
+TaxonID 91.0 : {'Habitat'}
+TaxonID 92.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 93.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 94.0 : {'Latitude', 'Habitat', 'Longitude'}
+TaxonID 95.0 : {'eventDate', 'Habitat', 'Longitude'}
+TaxonID 96.0 : {'eventDate', 'Habitat', 'Longitude', 'Latitude'}
+TaxonID 97.0 : {'Longitude'}
+TaxonID 98.0 : {'eventDate', 'Substrate', 'Longitude', 'Latitude'}
+TaxonID 99.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 100.0 : {'Habitat'}
+TaxonID 101.0 : {'Longitude'}
+TaxonID 102.0 : {'Habitat', 'Latitude', 'Substrate'}
+TaxonID 103.0 : {'Substrate', 'Longitude'}
+TaxonID 104.0 : {'eventDate', 'Latitude', 'Substrate'}
+TaxonID 105.0 : {'eventDate', 'Latitude', 'Substrate', 'Longitude'}
+TaxonID 106.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 107.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 108.0 : {'Latitude', 'Substrate'}
+TaxonID 109.0 : {'eventDate', 'Latitude', 'Longitude'}
+TaxonID 110.0 : {'Substrate', 'Habitat', 'Longitude'}
+TaxonID 111.0 : {'eventDate', 'Latitude', 'Habitat', 'Longitude'}
+TaxonID 112.0 : {'eventDate', 'Substrate', 'Longitude', 'Latitude'}
+TaxonID 113.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 114.0 : {'Habitat', 'eventDate', 'Substrate'}
+TaxonID 115.0 : {'eventDate', 'Latitude', 'Longitude', 'Substrate'}
+TaxonID 116.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 117.0 : {'eventDate', 'Latitude', 'Substrate'}
+TaxonID 118.0 : set()
+TaxonID 119.0 : {'eventDate', 'Substrate', 'Habitat', 'Longitude'}
+TaxonID 120.0 : {'eventDate', 'Latitude'}
+TaxonID 121.0 : {'Substrate'}
+TaxonID 122.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 123.0 : {'Habitat', 'eventDate', 'Latitude', 'Substrate'}
+TaxonID 124.0 : {'Latitude', 'Habitat'}
+TaxonID 125.0 : {'eventDate', 'Substrate', 'Longitude'}
+TaxonID 126.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 127.0 : {'eventDate', 'Substrate', 'Longitude', 'Latitude'}
+TaxonID 128.0 : {'Latitude', 'Habitat', 'Longitude'}
+TaxonID 129.0 : {'Habitat', 'eventDate', 'Substrate', 'Longitude'}
+TaxonID 130.0 : {'Latitude', 'Longitude'}
+TaxonID 131.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 132.0 : {'eventDate'}
+TaxonID 133.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 134.0 : {'Substrate'}
+TaxonID 135.0 : {'Substrate'}
+TaxonID 136.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 137.0 : {'eventDate', 'Latitude', 'Substrate', 'Longitude'}
+TaxonID 138.0 : {'Habitat', 'eventDate', 'Latitude', 'Longitude'}
+TaxonID 139.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 140.0 : {'eventDate', 'Latitude', 'Longitude'}
+TaxonID 141.0 : {'Longitude', 'eventDate', 'Latitude', 'Substrate', 'Habitat'}
+TaxonID 142.0 : {'Substrate'}
+TaxonID 143.0 : {'eventDate', 'Longitude'}
+TaxonID 144.0 : {'Latitude', 'Habitat', 'Longitude', 'Substrate'}
+TaxonID 145.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 146.0 : {'Latitude', 'Longitude'}
+TaxonID 147.0 : {'eventDate', 'Latitude', 'Habitat'}
+TaxonID 148.0 : set()
+TaxonID 149.0 : {'Latitude', 'Substrate', 'Longitude'}
+TaxonID 150.0 : {'Habitat'}
+TaxonID 151.0 : {'Substrate', 'Longitude'}
+TaxonID 152.0 : {'eventDate', 'Substrate', 'Habitat', 'Latitude'}
+TaxonID 153.0 : {'eventDate', 'Substrate', 'Longitude'}
+TaxonID 154.0 : {'eventDate', 'Habitat', 'Longitude', 'Latitude'}
+TaxonID 155.0 : {'Latitude', 'Habitat'}
+TaxonID 156.0 : {'Habitat', 'Latitude', 'Substrate', 'Longitude'}
+TaxonID 157.0 : {'eventDate', 'Habitat'}
+TaxonID 158.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 159.0 : {'eventDate', 'Substrate'}
+TaxonID 160.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 161.0 : {'eventDate', 'Habitat', 'Longitude', 'Substrate'}
+TaxonID 162.0 : {'Latitude', 'Habitat', 'Longitude', 'Substrate'}
+TaxonID 163.0 : {'eventDate', 'Longitude'}
+TaxonID 164.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 165.0 : {'Longitude'}
+TaxonID 166.0 : {'Longitude', 'eventDate', 'Latitude', 'Habitat', 'Substrate'}
+TaxonID 167.0 : {'Latitude', 'Habitat'}
+TaxonID 168.0 : {'Habitat', 'eventDate', 'Substrate', 'Longitude'}
+TaxonID 169.0 : {'eventDate', 'Latitude', 'Substrate'}
+TaxonID 170.0 : {'Latitude', 'Habitat'}
+TaxonID 171.0 : {'eventDate', 'Latitude', 'Longitude'}
+TaxonID 172.0 : {'Latitude', 'Habitat', 'Longitude', 'Substrate'}
+TaxonID 173.0 : {'eventDate', 'Habitat'}
+TaxonID 174.0 : {'Longitude'}
+TaxonID 175.0 : {'Latitude', 'Substrate'}
+TaxonID 176.0 : {'Latitude', 'Habitat', 'Longitude', 'Substrate'}
+TaxonID 177.0 : {'Substrate', 'Longitude'}
+TaxonID 178.0 : set()
+TaxonID 179.0 : {'Habitat', 'Longitude'}
+TaxonID 180.0 : {'eventDate', 'Longitude'}
+TaxonID 181.0 : {'Substrate'}
+TaxonID 182.0 : {'Longitude'}

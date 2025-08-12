@@ -1,0 +1,2548 @@
+==================================================
+TAXON ID: 0.0
+==================================================
+  Longitude: 12.293118
+  eventDate: 2020-10-22
+  eventDate: 2020-09-29
+  Longitude: 12.204892
+  Latitude: 56.962947
+  Habitat: Deciduous woodland
+  Habitat: Deciduous woodland
+  Substrate: dead wood (including bark)
+  Habitat: Deciduous woodland
+  Substrate: dead wood (including bark)
+  eventDate: 2019-09-28
+  Longitude: 9.81078
+  eventDate: 2012-10-13
+  Latitude: 55.885604
+  eventDate: 2015-09-27
+  Longitude: 11.522653
+  Longitude: 11.381202
+  Latitude: 56.052167
+  Longitude: 12.575931
+  Latitude: 55.897057
+  eventDate: 2011-09-11
+  Habitat: Deciduous woodland
+  Habitat: Unmanaged deciduous woodland
+  eventDate: 2019-10-03
+  Substrate: dead wood (including bark)
+  Latitude: 55.94131700000001
+  Longitude: 9.837639
+  Longitude: 12.235108
+==================================================
+TAXON ID: 1.0
+==================================================
+  Longitude: 11.84312
+  Longitude: 9.700265
+  Habitat: coniferous woodland/plantation
+  Longitude: 12.53809
+  Latitude: 55.68843100000001
+  Habitat: park/churchyard
+  Longitude: 12.534778
+  Habitat: Unmanaged coniferous woodland
+  eventDate: 2018-09-15
+  Habitat: coniferous woodland/plantation
+  Latitude: 56.176413
+  Latitude: 55.059791
+  Longitude: 8.613104
+  eventDate: 2011-08-28
+  Substrate: soil
+  Longitude: 12.445812
+  Latitude: 56.007367
+  Longitude: 12.530148
+  Habitat: Unmanaged deciduous woodland
+  eventDate: 2017-08-27
+  Longitude: 10.290928
+  Habitat: park/churchyard
+==================================================
+TAXON ID: 2.0
+==================================================
+  eventDate: 2020-08-02
+  Longitude: 12.358
+  Substrate: soil
+  eventDate: 2018-09-06
+  Longitude: 12.291985
+  eventDate: 2018-09-26
+  Longitude: 11.72261
+  Latitude: 56.02107
+  Longitude: 12.38456
+  Latitude: 55.069347
+  eventDate: 2018-09-17
+  Substrate: soil
+  Latitude: 55.733284
+  Substrate: soil
+  Substrate: soil
+==================================================
+TAXON ID: 3.0
+==================================================
+  eventDate: 2020-10-18
+  Latitude: 55.19375
+  Substrate: leaf or needle litter
+  Substrate: wood and roots of living trees
+  eventDate: 2012-10-14
+  eventDate: 2020-09-21
+  Latitude: 55.265462
+  Substrate: soil
+  eventDate: 2018-09-14
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: meadow
+  Longitude: 8.867825999999997
+  Substrate: soil
+  eventDate: 2019-09-27
+  Longitude: 12.404873
+  Longitude: 11.047911
+  Substrate: soil
+  Longitude: 8.53917
+  Longitude: 12.552275
+  eventDate: 2016-09-19
+  Latitude: 55.030125
+  Habitat: Unmanaged deciduous woodland
+  Latitude: 55.808324
+  eventDate: 2020-10-18
+  eventDate: 2018-08-25
+  Substrate: other substrate
+  Habitat: Deciduous woodland
+  eventDate: 2018-10-12
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  eventDate: 2017-07-13
+  Latitude: 56.28237900000001
+  Latitude: 55.493789
+  Longitude: 10.05764
+  eventDate: 2018-09-02
+  eventDate: 2020-10-28
+  Latitude: 55.09863100000001
+  Substrate: soil
+  Substrate: soil
+  Longitude: 12.522029
+  Habitat: Deciduous woodland
+  Habitat: Unmanaged coniferous woodland
+  Latitude: 54.820593
+  Latitude: 57.172589
+  Latitude: 56.782782
+  Latitude: 55.623538
+  Latitude: 56.256034
+  Habitat: coniferous woodland/plantation
+  Substrate: soil
+  Longitude: 11.595883
+  Latitude: 56.10142
+  Longitude: 12.399604
+  Longitude: 8.222752
+  Latitude: 55.103596
+  Habitat: roadside
+  eventDate: 2018-09-23
+==================================================
+TAXON ID: 4.0
+==================================================
+  Latitude: 57.138425
+  Latitude: 56.291109
+  Substrate: bark of living trees
+  Substrate: bark of living trees
+  Habitat: Thorny scrubland
+  Longitude: 9.812272
+  Substrate: mosses
+  Latitude: 54.989889
+  Longitude: 9.808897
+  Habitat: Unmanaged deciduous woodland
+  Longitude: 10.043435
+==================================================
+TAXON ID: 5.0
+==================================================
+  Habitat: coniferous woodland/plantation
+  Substrate: soil
+  Latitude: 55.455978
+  eventDate: 2020-10-01
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: Unmanaged coniferous woodland
+  Longitude: 11.720387
+  Habitat: Unmanaged coniferous woodland
+  Longitude: 12.574648
+  eventDate: 2018-10-10
+  Habitat: coniferous woodland/plantation
+  Longitude: 11.374958
+  Habitat: Unmanaged deciduous woodland
+  eventDate: 2010-10-23
+  eventDate: 2020-10-27
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Latitude: 55.959171
+  Habitat: natural grassland
+  Substrate: wood and roots of living trees
+  Longitude: 9.862872
+  eventDate: 2020-10-14
+  Habitat: Unmanaged coniferous woodland
+  eventDate: 2019-10-13
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: soil
+  Habitat: coniferous woodland/plantation
+  Habitat: coniferous woodland/plantation
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 11.678724
+  Latitude: 55.421513
+  eventDate: 2020-10-17
+  Latitude: 55.382719
+  Habitat: Deciduous woodland
+  Habitat: garden
+  Latitude: 56.796507
+  Habitat: Unmanaged coniferous woodland
+  Latitude: 55.634682
+  Longitude: 8.383821000000001
+  Longitude: 10.129772
+  Habitat: coniferous woodland/plantation
+  Habitat: Deciduous woodland
+  eventDate: 2020-10-11
+  Latitude: 55.3971
+  Substrate: soil
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: soil
+  Habitat: Unmanaged coniferous woodland
+  Substrate: wood and roots of living trees
+  Substrate: soil
+  eventDate: 2020-09-21
+==================================================
+TAXON ID: 6.0
+==================================================
+  eventDate: 2019-08-29
+  Substrate: soil
+  Latitude: 55.03716800000001
+  eventDate: 2019-09-03
+  Substrate: soil
+  eventDate: 2019-08-29
+  Habitat: park/churchyard
+  Substrate: soil
+  eventDate: 2019-08-25
+  Substrate: soil
+  eventDate: 2019-08-29
+  Substrate: soil
+  Habitat: roadside
+  Substrate: soil
+  Latitude: 55.825636
+  Substrate: soil
+  eventDate: 2017-08-23
+  Longitude: 11.586308
+  eventDate: 2018-10-01
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: soil
+  eventDate: 2017-08-12
+  Substrate: soil
+  eventDate: 2018-09-27
+  Habitat: Deciduous woodland
+==================================================
+TAXON ID: 7.0
+==================================================
+  Longitude: 11.575717
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 12.578058
+  Habitat: Unmanaged deciduous woodland
+  Latitude: 55.683827
+  Latitude: 55.78236500000001
+  Longitude: 12.467663
+  eventDate: 2013-07-04
+  Longitude: 10.271286
+==================================================
+TAXON ID: 8.0
+==================================================
+  Latitude: 55.53464399999999
+  Latitude: 56.17836
+  Habitat: Unmanaged coniferous woodland
+==================================================
+TAXON ID: 9.0
+==================================================
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: soil
+  Substrate: soil
+  Longitude: 12.478361
+  Substrate: soil
+  Latitude: 56.15579200000001
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 12.591684
+  Latitude: 55.684676
+  Habitat: Deciduous woodland
+  Latitude: 56.017433
+  Habitat: Deciduous woodland
+  Substrate: soil
+  eventDate: 2020-10-17
+  Latitude: 55.209483
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 10.034095
+  Latitude: 54.738514
+  eventDate: 2020-09-29
+  Latitude: 55.035204
+  Substrate: soil
+  Substrate: soil
+  Habitat: Unmanaged deciduous woodland
+  Latitude: 55.041623
+  Longitude: 10.564575
+==================================================
+TAXON ID: 10.0
+==================================================
+  eventDate: 2019-08-22
+  Latitude: 55.963889
+  Substrate: soil
+  Longitude: 9.722914
+  Substrate: soil
+  Substrate: soil
+  Longitude: 9.575268
+  Latitude: 55.283298
+  Longitude: 12.302822
+  eventDate: 2019-08-22
+  Longitude: 12.303403
+  eventDate: 2014-09-14
+  Habitat: Deciduous woodland
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 11.551032
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+==================================================
+TAXON ID: 11.0
+==================================================
+  Habitat: coniferous woodland/plantation
+  Latitude: 55.089206
+  Longitude: 9.881086
+  Substrate: soil
+  Longitude: 8.607411
+  Substrate: soil
+  eventDate: 2012-11-24
+  Latitude: 55.961117
+  Latitude: 55.70293
+  Substrate: soil
+  eventDate: 2015-11-02
+  eventDate: 2016-11-17
+  Habitat: coniferous woodland/plantation
+  Latitude: 56.000109
+  Longitude: 9.888639
+==================================================
+TAXON ID: 12.0
+==================================================
+  Latitude: 55.783463
+  eventDate: 2012-08-05
+  eventDate: 2012-06-26
+  Longitude: 9.61443
+==================================================
+TAXON ID: 13.0
+==================================================
+  Longitude: 9.706507
+  Habitat: Deciduous woodland
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 12.579367
+  Longitude: 12.590794
+  Habitat: Unmanaged deciduous woodland
+  Longitude: 10.208741
+  Longitude: 11.892955
+  Latitude: 56.073329
+  Latitude: 55.30849499999999
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: fungi
+  eventDate: 2020-10-14
+  Latitude: 55.30849499999999
+  Habitat: Deciduous woodland
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: soil
+==================================================
+TAXON ID: 14.0
+==================================================
+  Habitat: Acidic oak woodland
+  Latitude: 55.86698000000001
+  Habitat: Deciduous woodland
+  Substrate: soil
+  Latitude: 56.96305600000001
+  Longitude: 12.353748
+  Habitat: Unmanaged coniferous woodland
+  eventDate: 2019-06-29
+  eventDate: 2018-09-13
+  Habitat: Unmanaged coniferous woodland
+  eventDate: 2020-07-17
+  eventDate: 2020-07-25
+  Habitat: coniferous woodland/plantation
+  Latitude: 55.7716
+  Substrate: soil
+  eventDate: 2020-08-03
+  Substrate: soil
+  Habitat: Deciduous woodland
+  Substrate: soil
+  Habitat: coniferous woodland/plantation
+  Latitude: 55.628371
+  Substrate: soil
+  eventDate: 2018-09-10
+  Latitude: 55.271653
+  Substrate: soil
+  Habitat: Deciduous woodland
+  Latitude: 56.084114
+  Substrate: soil
+  Substrate: soil
+  Latitude: 55.451524
+  Longitude: 12.323575
+  Longitude: 12.306859
+  Longitude: 12.415547
+  Substrate: soil
+  Habitat: Unmanaged deciduous woodland
+==================================================
+TAXON ID: 15.0
+==================================================
+  eventDate: 2018-10-20
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Latitude: 55.605675
+  eventDate: 2020-10-05
+  Substrate: soil
+  Longitude: 9.080956
+  eventDate: 2020-11-10
+  Latitude: 55.22118
+  eventDate: 2015-10-01
+  eventDate: 2019-10-25
+  Latitude: 56.09930600000001
+  Latitude: 57.028575
+  eventDate: 2020-10-31
+  Habitat: coniferous woodland/plantation
+  Substrate: mosses
+  eventDate: 2010-11-13
+  Latitude: 55.6464
+  Habitat: coniferous woodland/plantation
+  Longitude: 8.441003
+  Latitude: 55.76973
+  Latitude: 55.965428
+  Substrate: soil
+==================================================
+TAXON ID: 16.0
+==================================================
+  eventDate: 2020-10-13
+  Substrate: dead wood (including bark)
+  Latitude: 56.22794200000001
+  Substrate: dead wood (including bark)
+  Habitat: Unmanaged deciduous woodland
+  Habitat: Unmanaged deciduous woodland
+  Substrate: dead wood (including bark)
+  eventDate: 2020-08-04
+  Longitude: 10.235697
+  eventDate: 2020-09-20
+  eventDate: 2016-10-29
+  eventDate: 2011-07-09
+  Longitude: 8.643642
+  Latitude: 56.644861
+  Longitude: 10.551658
+  Habitat: Deciduous woodland
+  Longitude: 12.476307
+  Longitude: 8.188746
+  eventDate: 2017-09-25
+  Latitude: 55.73301
+  Latitude: 57.20421999999999
+  Habitat: Unmanaged deciduous woodland
+  Substrate: dead wood (including bark)
+  eventDate: 2020-05-25
+  Latitude: 54.821195
+  Habitat: coniferous woodland/plantation
+  Substrate: wood
+  Substrate: soil
+  Latitude: 56.1466
+  eventDate: 2020-10-02
+  Longitude: 9.914063
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 9.809761
+  Habitat: Unmanaged coniferous woodland
+  Habitat: garden
+  Longitude: 12.40595
+  Latitude: 55.29284200000001
+  eventDate: 2020-10-30
+  Habitat: Deciduous woodland
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: dead wood (including bark)
+  Substrate: dead wood (including bark)
+  eventDate: 2017-10-06
+  eventDate: 2010-10-07
+  Substrate: dead wood (including bark)
+  Habitat: Acidic oak woodland
+  Longitude: 12.028072
+  Substrate: dead wood (including bark)
+  Longitude: 12.540611
+  eventDate: 2019-06-03
+  Latitude: 56.37546999999999
+  eventDate: 2011-06-13
+  Latitude: 56.51928100000001
+  Longitude: 9.62207
+  Habitat: wooded meadow, grazing forest
+  Longitude: 9.62891
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 8.561641
+  Substrate: wood
+  Substrate: bark of living trees
+  Habitat: Unmanaged deciduous woodland
+  Substrate: dead wood (including bark)
+  eventDate: 2017-10-17
+  Substrate: dead wood (including bark)
+  Longitude: 10.530773
+  Habitat: Acidic oak woodland
+  eventDate: 2020-10-11
+  Habitat: Deciduous woodland
+  Latitude: 56.138466
+  eventDate: 2020-10-17
+  Longitude: 9.37159
+==================================================
+TAXON ID: 17.0
+==================================================
+  Latitude: 55.69260799999999
+  Longitude: 9.501723
+  eventDate: 2015-09-05
+  Habitat: park/churchyard
+  Substrate: soil
+  Latitude: 56.084238
+  Latitude: 55.943348
+  eventDate: 2020-09-26
+  Latitude: 55.677028
+  Longitude: 12.45763
+  Longitude: 9.329478
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Latitude: 55.582735
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  eventDate: 2019-09-07
+  Longitude: 9.826798
+  Substrate: leaf or needle litter
+  Substrate: soil
+  Longitude: 12.181892
+  Habitat: Deciduous woodland
+  eventDate: 2020-09-15
+  Longitude: 12.552779
+  eventDate: 2019-09-03
+  eventDate: 2009-09-04
+  eventDate: 2020-10-12
+  Longitude: 11.77199
+  eventDate: 2017-10-14
+  Habitat: Unmanaged deciduous woodland
+  Substrate: soil
+  Longitude: 12.029172
+  eventDate: 2020-09-30
+  eventDate: 2009-07-12
+  Longitude: 9.610938
+  Longitude: 8.95251
+  Latitude: 55.7703
+  Latitude: 55.7703
+==================================================
+TAXON ID: 18.0
+==================================================
+  Habitat: lawn
+  Substrate: soil
+  Substrate: soil
+  Longitude: 9.817572
+  Latitude: 55.78591
+  eventDate: 2019-09-28
+  Habitat: coniferous woodland/plantation
+  Longitude: 12.352969
+  Substrate: soil
+  eventDate: 2020-11-11
+  eventDate: 2017-07-23
+==================================================
+TAXON ID: 19.0
+==================================================
+  Latitude: 55.8468
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: soil
+  Latitude: 55.804435
+  Latitude: 55.97085
+  Habitat: coniferous woodland/plantation
+  Substrate: leaf or needle litter
+  eventDate: 2010-08-28
+  Latitude: 57.10887
+  Latitude: 56.06684
+==================================================
+TAXON ID: 20.0
+==================================================
+  Habitat: coniferous woodland/plantation
+  Latitude: 56.021917
+  Substrate: soil
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Latitude: 56.033284
+  Latitude: 55.96371
+  eventDate: 2018-10-14
+  Substrate: soil
+==================================================
+TAXON ID: 21.0
+==================================================
+  Substrate: soil
+  eventDate: 2019-10-10
+  Latitude: 55.66261
+  Longitude: 9.841733
+  Substrate: soil
+  Longitude: 8.653319999999999
+  Longitude: 10.526529
+  Longitude: 12.312687
+  Habitat: Unmanaged deciduous woodland
+  Habitat: Deciduous woodland
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  eventDate: 2020-10-13
+  Habitat: coniferous woodland/plantation
+  eventDate: 2017-10-03
+  Habitat: park/churchyard
+  Substrate: soil
+  Longitude: 10.33419
+  Habitat: Unmanaged deciduous woodland
+  Latitude: 55.083108
+  Habitat: coniferous woodland/plantation
+  Longitude: 9.841733
+  Substrate: soil
+  Substrate: soil
+  Latitude: 55.914774
+  Longitude: 11.488593
+  Latitude: 55.79217
+==================================================
+TAXON ID: 22.0
+==================================================
+  Longitude: 9.350617
+  Substrate: soil
+  Longitude: 9.47067
+  eventDate: 2020-10-03
+  eventDate: 2020-10-20
+  Latitude: 56.286622
+  Substrate: soil
+  Longitude: 12.01441
+==================================================
+TAXON ID: 23.0
+==================================================
+  eventDate: 2018-10-04
+  eventDate: 2020-10-03
+  Longitude: 12.016562
+  eventDate: 2020-10-25
+  Habitat: coniferous woodland/plantation
+  Longitude: 9.277414
+  Habitat: Unmanaged coniferous woodland
+  Habitat: coniferous woodland/plantation
+==================================================
+TAXON ID: 24.0
+==================================================
+  Habitat: coniferous woodland/plantation
+  Latitude: 55.196342
+  Substrate: soil
+  Latitude: 55.684463
+  Latitude: 54.778911
+  eventDate: 2019-10-25
+  eventDate: 2011-11-05
+  eventDate: 2019-11-28
+  Latitude: 54.790414
+  Latitude: 55.839928
+  Habitat: Unmanaged deciduous woodland
+  Substrate: leaf or needle litter
+  eventDate: 2017-10-14
+  eventDate: 2019-10-05
+  Habitat: garden
+  Habitat: lawn
+  Substrate: leaf or needle litter
+  Habitat: park/churchyard
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: garden
+  eventDate: 2012-10-21
+  Substrate: soil
+  Longitude: 12.34658
+==================================================
+TAXON ID: 25.0
+==================================================
+  Habitat: Deciduous woodland
+  Longitude: 11.663947
+  Substrate: dead wood (including bark)
+  Longitude: 11.43739
+  Habitat: Deciduous woodland
+  Habitat: Deciduous woodland
+  Longitude: 9.438431
+  eventDate: 2020-10-04
+  eventDate: 2012-09-16
+  Substrate: dead wood (including bark)
+  Latitude: 55.03968
+  Latitude: 55.67772900000001
+==================================================
+TAXON ID: 26.0
+==================================================
+  eventDate: 2016-09-30
+  Habitat: Acidic oak woodland
+  Substrate: soil
+  Latitude: 54.812062
+  Substrate: soil
+  Habitat: Deciduous woodland
+  Longitude: 12.461468
+  Substrate: soil
+  eventDate: 2019-10-15
+  Longitude: 10.80875
+  Latitude: 56.38695300000001
+  Substrate: soil
+==================================================
+TAXON ID: 27.0
+==================================================
+  Habitat: Unmanaged coniferous woodland
+  eventDate: 2019-10-19
+  Substrate: soil
+  Latitude: 55.4556
+  Latitude: 55.954227
+  eventDate: 2009-08-22
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+==================================================
+TAXON ID: 28.0
+==================================================
+  Longitude: 12.449776
+  eventDate: 2018-10-27
+  Longitude: 12.515368
+  Latitude: 55.964165
+  Latitude: 55.68691999999999
+  Substrate: soil
+  Latitude: 56.000061
+  eventDate: 2012-08-25
+  eventDate: 2019-09-01
+==================================================
+TAXON ID: 29.0
+==================================================
+  eventDate: 2016-07-17
+  Longitude: 11.715142
+  Latitude: 55.70927
+  Substrate: soil
+  Latitude: 56.8116
+  Habitat: Unmanaged deciduous woodland
+  eventDate: 2018-09-17
+  Substrate: soil
+  Substrate: soil
+  Longitude: 11.44066
+  eventDate: 2019-08-08
+==================================================
+TAXON ID: 30.0
+==================================================
+  Substrate: dead wood (including bark)
+  Latitude: 56.032047
+  Longitude: 12.35198
+  eventDate: 2012-08-05
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Latitude: 54.837014
+==================================================
+TAXON ID: 31.0
+==================================================
+  Longitude: 10.740252
+  Habitat: Deciduous woodland
+  Latitude: 54.85428
+  eventDate: 2014-10-16
+==================================================
+TAXON ID: 32.0
+==================================================
+  Substrate: soil
+  Substrate: dead wood (including bark)
+  Longitude: 9.545774
+  Longitude: 9.793799
+  Habitat: Deciduous woodland
+==================================================
+TAXON ID: 33.0
+==================================================
+  Longitude: 9.811583
+  Substrate: soil
+  Substrate: soil
+  Substrate: soil
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Latitude: 56.009419
+  Latitude: 56.205176
+  eventDate: 2020-09-19
+  Substrate: soil
+  Longitude: 10.284297
+  Latitude: 56.088489
+  Longitude: 11.54217
+  Habitat: Unmanaged deciduous woodland
+  Longitude: 12.562792
+  Longitude: 8.427358
+  Latitude: 56.803181
+  eventDate: 2019-09-15
+  Substrate: soil
+  Latitude: 55.290016
+  Longitude: 12.293652
+  Longitude: 12.034281
+  eventDate: 2018-08-24
+  eventDate: 2019-09-26
+  Substrate: soil
+  Habitat: Forest bog
+  eventDate: 2016-09-19
+  Habitat: coniferous woodland/plantation
+==================================================
+TAXON ID: 34.0
+==================================================
+  Habitat: hedgerow
+  Habitat: Unmanaged deciduous woodland
+  Habitat: wooded meadow, grazing forest
+  Substrate: dead wood (including bark)
+  Longitude: 9.813677
+  Habitat: Deciduous woodland
+  eventDate: 2020-12-06
+  Habitat: Unmanaged deciduous woodland
+  Habitat: lawn
+  Longitude: 12.55366
+  Substrate: soil
+  Habitat: Unmanaged deciduous woodland
+  Longitude: 11.94453
+  Longitude: 12.55366
+  Substrate: soil
+  Longitude: 12.528691
+==================================================
+TAXON ID: 35.0
+==================================================
+  Substrate: leaf or needle litter
+  eventDate: 2010-10-26
+  Latitude: 57.032524
+  Longitude: 9.824094
+  Latitude: 55.65408100000001
+  eventDate: 2009-11-26
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  eventDate: 2019-11-13
+  Habitat: Deciduous woodland
+  Habitat: Thorny scrubland
+  Habitat: Unmanaged deciduous woodland
+  Substrate: soil
+==================================================
+TAXON ID: 36.0
+==================================================
+  Substrate: living stems of herbs, grass etc
+  Latitude: 55.898732
+  Substrate: soil
+==================================================
+TAXON ID: 37.0
+==================================================
+  Longitude: 9.47749
+  Substrate: soil
+  Longitude: 11.92019
+  eventDate: 2020-07-14
+  eventDate: 2019-08-30
+  Substrate: soil
+  Latitude: 55.73603000000001
+  Latitude: 56.12775799999999
+  Latitude: 56.235671
+  Longitude: 12.57463
+  Longitude: 10.069656
+  Latitude: 55.078183
+  eventDate: 2011-07-28
+  Substrate: soil
+  Substrate: soil
+  Longitude: 14.761581
+  Habitat: lawn
+  Latitude: 55.74721
+  Substrate: soil
+  Substrate: soil
+  eventDate: 2019-08-10
+  eventDate: 2019-08-13
+  Habitat: park/churchyard
+  Substrate: soil
+  eventDate: 2020-09-08
+  eventDate: 2020-10-05
+  Habitat: roadside
+==================================================
+TAXON ID: 38.0
+==================================================
+  eventDate: 2020-09-14
+  Substrate: soil
+  Habitat: roadside
+  Substrate: soil
+  Latitude: 55.832008
+  Longitude: 12.027558
+==================================================
+TAXON ID: 39.0
+==================================================
+  Longitude: 9.619818
+  Latitude: 55.270559
+  eventDate: 2019-10-13
+  eventDate: 2020-10-30
+  Habitat: Deciduous woodland
+  Substrate: soil
+  Latitude: 55.371222
+  eventDate: 2019-10-16
+  Longitude: 9.787445
+  Latitude: 55.090035
+  Substrate: soil
+  Substrate: soil
+  Habitat: Deciduous woodland
+  Habitat: Unmanaged deciduous woodland
+  Latitude: 55.738806
+  Substrate: leaf or needle litter
+  Latitude: 56.087796
+  Longitude: 12.354537
+  Longitude: 11.486352
+  eventDate: 2020-10-20
+  Substrate: soil
+  eventDate: 2019-11-17
+  Latitude: 55.423754
+  Substrate: leaf or needle litter
+  Habitat: Deciduous woodland
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: leaf or needle litter
+  Substrate: soil
+  eventDate: 2019-10-29
+  Latitude: 55.28486899999999
+  eventDate: 2019-11-07
+  Latitude: 55.588494
+  Substrate: soil
+  Longitude: 12.564962
+  Substrate: mosses
+  Habitat: coniferous woodland/plantation
+  Habitat: coniferous woodland/plantation
+  Substrate: soil
+  Latitude: 55.40568
+  Longitude: 12.601795
+  Longitude: 12.429119
+  Habitat: Deciduous woodland
+  Latitude: 54.749314
+  Substrate: leaf or needle litter
+  Substrate: soil
+  Substrate: leaf or needle litter
+  Substrate: soil
+  Longitude: 12.574385
+  Latitude: 56.30468199999999
+  Habitat: Deciduous woodland
+  Substrate: soil
+  Latitude: 55.70239100000001
+  eventDate: 2019-10-29
+  Longitude: 8.516728
+  eventDate: 2020-10-31
+  Longitude: 12.315711
+  Longitude: 9.809117
+  Substrate: soil
+  Longitude: 10.240288
+  Longitude: 11.934277
+  Longitude: 12.447385
+  Latitude: 57.450236
+  Habitat: wooded meadow, grazing forest
+==================================================
+TAXON ID: 40.0
+==================================================
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: Unmanaged deciduous woodland
+  eventDate: 2018-09-09
+  Longitude: 9.489505
+  Substrate: soil
+  Longitude: 12.506184
+  Latitude: 56.810908
+  eventDate: 2015-08-09
+  Substrate: soil
+  eventDate: 2015-08-16
+  Latitude: 56.033787
+  Habitat: Deciduous woodland
+  Substrate: soil
+  Substrate: soil
+  Longitude: 9.882358
+  Longitude: 12.454297
+  Habitat: Unmanaged deciduous woodland
+  Substrate: soil
+  Longitude: 12.400134
+==================================================
+TAXON ID: 41.0
+==================================================
+  eventDate: 2016-04-16
+  Habitat: Deciduous woodland
+==================================================
+TAXON ID: 42.0
+==================================================
+  Habitat: garden
+  Habitat: natural grassland
+  eventDate: 2018-10-01
+  Habitat: coniferous woodland/plantation
+  Habitat: lawn
+==================================================
+TAXON ID: 43.0
+==================================================
+  eventDate: 2019-09-25
+  Latitude: 55.981663
+  eventDate: 2020-09-14
+  Latitude: 55.080156
+  Substrate: soil
+  Longitude: 9.532525
+  eventDate: 2019-08-27
+  Habitat: Unmanaged deciduous woodland
+  eventDate: 2020-07-30
+  Substrate: soil
+  Substrate: soil
+  Longitude: 10.573161
+  Substrate: soil
+  Habitat: coniferous woodland/plantation
+  Habitat: Deciduous woodland
+  Longitude: 12.565819
+  eventDate: 2020-07-24
+  Habitat: coniferous woodland/plantation
+  Latitude: 55.738488
+  Habitat: Unmanaged deciduous woodland
+  Substrate: soil
+  Habitat: coniferous woodland/plantation
+  Habitat: Unmanaged deciduous woodland
+  Latitude: 55.126714
+  Habitat: coniferous woodland/plantation
+  Latitude: 56.010184
+  Habitat: garden
+  Longitude: 11.888841
+  Latitude: 56.980233
+  eventDate: 2019-08-20
+  eventDate: 2020-08-04
+  Latitude: 55.139885
+  Longitude: 12.413692
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  eventDate: 2020-09-17
+  Longitude: 12.26561
+  Longitude: 10.367455
+  Substrate: soil
+  Substrate: soil
+  Latitude: 56.174911
+  eventDate: 2018-08-25
+  Habitat: Unmanaged deciduous woodland
+==================================================
+TAXON ID: 44.0
+==================================================
+  eventDate: 2011-08-31
+  Substrate: soil
+  Latitude: 55.96966800000001
+  Latitude: 56.032397
+  Substrate: soil
+  eventDate: 2013-06-08
+  Substrate: soil
+  Habitat: natural grassland
+  Longitude: 9.91353
+  Longitude: 9.91353
+==================================================
+TAXON ID: 45.0
+==================================================
+  Substrate: soil
+  Habitat: natural grassland
+  Latitude: 55.67990699999999
+  eventDate: 2020-10-10
+==================================================
+TAXON ID: 46.0
+==================================================
+  Substrate: soil
+  Latitude: 56.06841
+  Latitude: 54.812206
+  Latitude: 56.205105
+  eventDate: 2020-08-06
+  Latitude: 55.67479
+==================================================
+TAXON ID: 47.0
+==================================================
+  Habitat: Deciduous woodland
+  Substrate: soil
+  Latitude: 55.97064
+==================================================
+TAXON ID: 48.0
+==================================================
+  Substrate: soil
+  Substrate: soil
+  eventDate: 2017-10-03
+  Habitat: Unmanaged coniferous woodland
+  eventDate: 2017-10-14
+  Habitat: coniferous woodland/plantation
+  Substrate: soil
+  Substrate: soil
+  Latitude: 57.05798000000001
+  Habitat: coniferous woodland/plantation
+==================================================
+TAXON ID: 49.0
+==================================================
+  eventDate: 2020-10-26
+  Latitude: 55.14080600000001
+  Longitude: 12.526891
+  Longitude: 12.31926
+  Latitude: 56.11131999999999
+  Longitude: 10.161662
+  Latitude: 55.38799399999999
+  Substrate: soil
+  Latitude: 55.82004300000001
+  Latitude: 56.15937
+  Longitude: 12.469744
+  Substrate: soil
+  Habitat: park/churchyard
+  Substrate: soil
+  Longitude: 12.546794
+  Habitat: lawn
+  Substrate: soil
+  eventDate: 2009-06-09
+  Longitude: 10.313573
+  Latitude: 56.106751
+  eventDate: 2019-10-27
+  Longitude: 12.435923
+  Longitude: 12.183522
+  eventDate: 2017-10-31
+  Habitat: meadow
+  Habitat: Unmanaged deciduous woodland
+  eventDate: 2017-09-17
+  Habitat: park/churchyard
+==================================================
+TAXON ID: 50.0
+==================================================
+  eventDate: 2011-08-21
+  eventDate: 2015-10-01
+  eventDate: 2019-10-22
+  Longitude: 10.074687
+  Habitat: lawn
+  Habitat: other habitat
+  Latitude: 55.96366
+  Habitat: hedgerow
+  Habitat: natural grassland
+  Latitude: 55.27113000000001
+  Latitude: 55.673138
+  Latitude: 56.08722
+  Longitude: 12.62812
+  Substrate: soil
+  Latitude: 54.671486
+  Longitude: 9.814074
+  Habitat: natural grassland
+  Substrate: stems of herbs, grass etc
+  Substrate: soil
+  eventDate: 2019-10-28
+  Habitat: roadside
+  Habitat: roadside
+  Substrate: soil
+  Longitude: 12.61153
+==================================================
+TAXON ID: 51.0
+==================================================
+  Substrate: soil
+  Habitat: Thorny scrubland
+  Habitat: coniferous woodland/plantation
+  Substrate: soil
+  Latitude: 55.939779
+  Substrate: soil
+  Longitude: 8.821767
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: soil
+  Substrate: soil
+  Longitude: 9.333036
+  Habitat: Unmanaged coniferous woodland
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: soil
+  Substrate: soil
+  Longitude: 9.412024
+  eventDate: 2019-08-25
+  eventDate: 2020-09-29
+==================================================
+TAXON ID: 52.0
+==================================================
+  eventDate: 2018-09-12
+  Latitude: 55.001214
+  Substrate: soil
+  Latitude: 56.300896
+  Latitude: 56.075811
+  Substrate: soil
+  Latitude: 54.817889
+  Latitude: 56.162451
+  Latitude: 56.300896
+  Habitat: coniferous woodland/plantation
+  Latitude: 55.808425
+  Latitude: 55.88436
+  Longitude: 10.530687
+  Habitat: Deciduous woodland
+  eventDate: 2017-10-18
+  eventDate: 2016-11-06
+==================================================
+TAXON ID: 53.0
+==================================================
+  Latitude: 55.51515300000001
+  eventDate: 2016-10-26
+  eventDate: 2018-11-12
+  Habitat: lawn
+  Habitat: park/churchyard
+  Longitude: 9.352439
+  Longitude: 12.409641
+  eventDate: 2019-05-27
+  Habitat: Willow scrubland
+  Substrate: soil
+  eventDate: 2012-09-27
+  eventDate: 2019-12-19
+  eventDate: 2019-09-12
+  eventDate: 2020-08-25
+  Longitude: 12.1851
+  Substrate: stems of herbs, grass etc
+  Substrate: wood
+  Substrate: soil
+  Latitude: 56.031683
+  Longitude: 9.468627
+  eventDate: 2016-10-24
+  Habitat: Deciduous woodland
+  Longitude: 12.450013
+==================================================
+TAXON ID: 54.0
+==================================================
+  eventDate: 2019-09-23
+  Longitude: 15.080514
+  Habitat: Unmanaged coniferous woodland
+  Habitat: Unmanaged coniferous woodland
+  Longitude: 8.205339
+  Latitude: 55.677902
+  Longitude: 15.069560999999998
+  Latitude: 55.01085
+  Latitude: 56.14207
+  Longitude: 8.119536
+  Longitude: 14.95798
+  Longitude: 15.067232999999998
+  Latitude: 55.45115500000001
+==================================================
+TAXON ID: 55.0
+==================================================
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: garden
+  Latitude: 56.13153000000001
+  Habitat: garden
+  Substrate: soil
+  Longitude: 10.252517
+==================================================
+TAXON ID: 56.0
+==================================================
+  Latitude: 55.684238
+  Substrate: soil
+  Latitude: 55.61575799999999
+  eventDate: 2020-09-13
+  eventDate: 2020-11-06
+  Substrate: soil
+  Substrate: soil
+  Habitat: coniferous woodland/plantation
+  Habitat: roadside
+  Longitude: 11.918535
+  Longitude: 12.05201
+  eventDate: 2019-11-01
+==================================================
+TAXON ID: 57.0
+==================================================
+  eventDate: 2011-08-24
+  Habitat: park/churchyard
+  Longitude: 12.303932
+  Longitude: 9.947691
+  Latitude: 56.11821
+  Latitude: 55.990749
+==================================================
+TAXON ID: 58.0
+==================================================
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Latitude: 55.99800000000001
+  eventDate: 2019-08-19
+  Substrate: soil
+  Habitat: Deciduous woodland
+  eventDate: 2018-09-12
+  Longitude: 10.355083
+  Latitude: 54.72084
+  Substrate: soil
+  Habitat: Deciduous woodland
+  Habitat: Deciduous woodland
+  Latitude: 56.289823
+  Latitude: 56.012058
+  Substrate: soil
+  Substrate: soil
+  Latitude: 56.256253
+  Substrate: soil
+  Latitude: 55.508453
+  Longitude: 12.295824
+  Longitude: 10.252686
+  Longitude: 10.232406
+  Longitude: 9.817421
+  Longitude: 12.387685
+  Substrate: soil
+  Longitude: 10.278817
+  Latitude: 55.91824
+  Longitude: 10.618587
+  Latitude: 56.637398
+  Latitude: 56.64021
+  eventDate: 2019-06-28
+  Longitude: 12.372584
+==================================================
+TAXON ID: 59.0
+==================================================
+  Longitude: 9.804705
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: Deciduous woodland
+==================================================
+TAXON ID: 60.0
+==================================================
+  Longitude: 10.220641
+  Habitat: natural grassland
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: Unmanaged deciduous woodland
+  Longitude: 9.658806
+  Longitude: 11.476765
+  Habitat: Unmanaged deciduous woodland
+  Habitat: Deciduous woodland
+  Habitat: Deciduous woodland
+  eventDate: 2018-12-12
+  Habitat: natural grassland
+  Substrate: soil
+  Latitude: 55.287144
+  Habitat: Deciduous woodland
+  Longitude: 12.2692
+  Latitude: 56.210232
+  Substrate: soil
+  Habitat: Thorny scrubland
+==================================================
+TAXON ID: 61.0
+==================================================
+  eventDate: 2018-09-29
+  eventDate: 2012-08-02
+  Latitude: 56.098806
+  Latitude: 55.780435
+  Latitude: 55.59713299999999
+  eventDate: 2011-08-17
+  Substrate: soil
+  Longitude: 10.742054
+  eventDate: 2015-08-19
+  Latitude: 55.937051
+  Latitude: 54.82398000000001
+  Longitude: 11.615193
+  Substrate: soil
+==================================================
+TAXON ID: 62.0
+==================================================
+  Substrate: dead wood (including bark)
+  Latitude: 55.031303
+  Habitat: Deciduous woodland
+  Longitude: 12.559518
+  eventDate: 2018-02-14
+  Habitat: Unmanaged deciduous woodland
+  Latitude: 56.155835
+  Longitude: 12.3767
+  Substrate: dead wood (including bark)
+  Longitude: 12.293788
+  Latitude: 55.789773
+  Substrate: dead wood (including bark)
+==================================================
+TAXON ID: 63.0
+==================================================
+  Longitude: 9.4141
+  Substrate: soil
+  Substrate: soil
+  Habitat: park/churchyard
+  Habitat: park/churchyard
+  eventDate: 2019-08-22
+  Habitat: Unmanaged deciduous woodland
+  eventDate: 2016-07-16
+  Substrate: soil
+  Habitat: Deciduous woodland
+  Latitude: 55.600075
+  eventDate: 2017-07-04
+  Longitude: 11.739878
+  Substrate: soil
+==================================================
+TAXON ID: 64.0
+==================================================
+  Substrate: soil
+  Latitude: 55.769404
+  Substrate: soil
+  Habitat: Deciduous woodland
+  Latitude: 55.56451
+  Latitude: 56.387113
+  eventDate: 2011-08-17
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: coniferous woodland/plantation
+  Substrate: soil
+  eventDate: 2011-08-24
+  Latitude: 55.99866
+  eventDate: 2018-09-16
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Latitude: 55.93532
+  Substrate: soil
+  Substrate: soil
+  Latitude: 55.769404
+  Substrate: soil
+  Substrate: soil
+  Latitude: 56.061063
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 9.362783
+  Habitat: garden
+  eventDate: 2019-09-27
+  Longitude: 11.978453
+  Substrate: soil
+  Longitude: 9.89866
+  Longitude: 12.32027
+  eventDate: 2018-09-03
+  Latitude: 55.5407
+  Latitude: 56.06010500000001
+  Latitude: 55.95976999999999
+  Substrate: soil
+==================================================
+TAXON ID: 65.0
+==================================================
+  Longitude: 12.55395
+  eventDate: 2015-07-28
+  eventDate: 2020-10-10
+  eventDate: 2019-10-16
+  Substrate: soil
+  Habitat: Deciduous woodland
+  Latitude: 57.05058
+  Substrate: soil
+  Substrate: soil
+  eventDate: 2013-11-04
+  Longitude: 10.253756
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 12.370435
+  eventDate: 2018-10-10
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: Deciduous woodland
+==================================================
+TAXON ID: 66.0
+==================================================
+  Substrate: soil
+  Habitat: Unmanaged coniferous woodland
+  Longitude: 12.344392
+  Longitude: 11.799449
+  Habitat: Deciduous woodland
+  Substrate: soil
+  Longitude: 8.380849000000001
+  Latitude: 54.81801899999999
+  Habitat: Deciduous woodland
+  eventDate: 2020-10-20
+  Habitat: Deciduous woodland
+  Habitat: Thorny scrubland
+  Longitude: 10.552119
+  Latitude: 55.953813
+  eventDate: 2020-10-12
+  eventDate: 2019-09-30
+  Longitude: 12.1983
+  Latitude: 56.202664
+  Substrate: soil
+  Latitude: 54.769207
+  eventDate: 2020-10-27
+  Substrate: leaf or needle litter
+  Habitat: Deciduous woodland
+  Latitude: 55.622314
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Latitude: 55.57338299999999
+  eventDate: 2020-10-27
+  Habitat: natural grassland
+  Latitude: 55.551299
+  eventDate: 2020-10-25
+  Substrate: leaf or needle litter
+  Longitude: 12.315379
+  Longitude: 12.454047
+  Longitude: 11.857016
+  eventDate: 2020-08-06
+  eventDate: 2019-09-03
+==================================================
+TAXON ID: 67.0
+==================================================
+  eventDate: 2019-09-18
+  Longitude: 10.990877
+  Longitude: 12.00248
+  Longitude: 12.337483
+  Habitat: Deciduous woodland
+  Longitude: 12.21701
+  Substrate: soil
+  Substrate: soil
+  eventDate: 2013-09-04
+  Latitude: 55.79547
+  Substrate: soil
+  Latitude: 55.658227
+  Substrate: soil
+  Habitat: gravel or clay pit
+  Longitude: 10.107269
+  Substrate: soil
+==================================================
+TAXON ID: 68.0
+==================================================
+  eventDate: 2020-09-05
+  Latitude: 54.90636
+  Longitude: 10.26652
+  Habitat: Unmanaged deciduous woodland
+  Substrate: soil
+  Longitude: 10.540943
+  eventDate: 2018-09-09
+  Longitude: 12.40869
+  Longitude: 10.16459
+==================================================
+TAXON ID: 69.0
+==================================================
+  Substrate: soil
+  Longitude: 11.917685
+  Habitat: Deciduous woodland
+  Habitat: Deciduous woodland
+  eventDate: 2020-10-04
+  Longitude: 10.282388
+  Latitude: 55.012522
+  eventDate: 2019-08-04
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Latitude: 55.771866
+  Habitat: Deciduous woodland
+  Longitude: 12.368443
+==================================================
+TAXON ID: 70.0
+==================================================
+  Habitat: Deciduous woodland
+  Substrate: leaf or needle litter
+  Longitude: 9.857247
+  Longitude: 12.35259
+==================================================
+TAXON ID: 71.0
+==================================================
+  Latitude: 56.40421
+  Latitude: 55.777376
+  Longitude: 9.401217
+  Latitude: 55.70221
+  Substrate: soil
+  Latitude: 56.050376
+==================================================
+TAXON ID: 72.0
+==================================================
+  Habitat: natural grassland
+  Substrate: soil
+  Substrate: soil
+  Substrate: soil
+  eventDate: 2012-04-26
+  Substrate: soil
+  eventDate: 2013-10-12
+  Latitude: 55.007861
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 12.235338
+  Latitude: 56.644536
+  Habitat: coniferous woodland/plantation
+  eventDate: 2018-10-22
+  Habitat: natural grassland
+  Habitat: Unmanaged coniferous woodland
+  Longitude: 10.524422
+  Substrate: wood chips or mulch
+  Longitude: 10.697661
+  Substrate: soil
+  Longitude: 12.406431
+  Longitude: 9.865959
+  eventDate: 2020-10-26
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: park/churchyard
+  eventDate: 2010-05-20
+  Habitat: natural grassland
+  Substrate: leaf or needle litter
+  Substrate: soil
+==================================================
+TAXON ID: 73.0
+==================================================
+  Habitat: garden
+  Habitat: lawn
+  Substrate: soil
+  Habitat: coniferous woodland/plantation
+  eventDate: 2017-08-05
+  Longitude: 12.0273
+  Longitude: 12.37601
+  Latitude: 56.06101500000001
+  Habitat: natural grassland
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+==================================================
+TAXON ID: 74.0
+==================================================
+  Substrate: soil
+  Substrate: soil
+  Substrate: mosses
+  Latitude: 56.801795
+  Latitude: 55.964275
+  Habitat: wooded meadow, grazing forest
+  Latitude: 56.158047
+  Substrate: soil
+  Substrate: soil
+  Longitude: 10.24824
+  eventDate: 2018-11-03
+  Latitude: 55.743661
+  Substrate: soil
+  eventDate: 2020-09-11
+  Longitude: 8.403235
+==================================================
+TAXON ID: 75.0
+==================================================
+  Habitat: Unmanaged deciduous woodland
+  Habitat: Willow scrubland
+  Habitat: Willow scrubland
+  Latitude: 56.02635
+  Longitude: 8.686474
+  Habitat: Willow scrubland
+  eventDate: 2013-11-22
+  Habitat: roadside
+  eventDate: 2020-09-24
+  Latitude: 55.75131999999999
+  Substrate: soil
+  Substrate: wood
+  Habitat: Thorny scrubland
+==================================================
+TAXON ID: 76.0
+==================================================
+  eventDate: 2019-10-04
+  eventDate: 2017-06-29
+  eventDate: 2017-09-10
+==================================================
+TAXON ID: 77.0
+==================================================
+  Longitude: 12.148107
+  Habitat: Unmanaged deciduous woodland
+  eventDate: 2010-08-09
+  Substrate: soil
+  Substrate: soil
+  Habitat: Deciduous woodland
+  Substrate: soil
+  Habitat: Deciduous woodland
+  Latitude: 56.15788000000001
+  Longitude: 12.094215
+  Substrate: soil
+  Latitude: 55.962775
+  Habitat: Deciduous woodland
+  Substrate: soil
+  eventDate: 2019-08-27
+  Habitat: Deciduous woodland
+  Substrate: soil
+  Latitude: 56.17129
+==================================================
+TAXON ID: 78.0
+==================================================
+  Habitat: Deciduous woodland
+  Habitat: coniferous woodland/plantation
+  Substrate: soil
+  Latitude: 55.00169399999999
+  Substrate: soil
+  Longitude: 11.20482
+  Latitude: 55.92004100000001
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: soil
+  Substrate: soil
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Latitude: 55.5482
+  Habitat: Deciduous woodland
+==================================================
+TAXON ID: 79.0
+==================================================
+  Habitat: Deciduous woodland
+  Longitude: 12.28072
+  Substrate: soil
+  Latitude: 56.10632
+  Longitude: 11.714653
+  Longitude: 11.52321
+  Substrate: soil
+  Habitat: Deciduous woodland
+==================================================
+TAXON ID: 80.0
+==================================================
+  Substrate: soil
+  Longitude: 10.069916
+  Longitude: 8.728508999999999
+  Substrate: leaf or needle litter
+  eventDate: 2020-09-27
+  Longitude: 9.58276
+  eventDate: 2020-09-15
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 10.751152
+  Substrate: soil
+  Longitude: 8.20805
+  Latitude: 55.6464
+  Habitat: garden
+  Latitude: 54.977909
+  Habitat: Deciduous woodland
+==================================================
+TAXON ID: 81.0
+==================================================
+  eventDate: 2016-08-30
+  eventDate: 2017-07-24
+  eventDate: 2013-09-12
+  Latitude: 57.03142
+  Habitat: Unmanaged deciduous woodland
+  Habitat: Deciduous woodland
+  Latitude: 56.002689
+  Longitude: 12.433468
+  Latitude: 55.138789
+==================================================
+TAXON ID: 82.0
+==================================================
+  Habitat: coniferous woodland/plantation
+  Habitat: Unmanaged coniferous woodland
+  Substrate: leaf or needle litter
+  Substrate: dead wood (including bark)
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: coniferous woodland/plantation
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: Unmanaged coniferous woodland
+==================================================
+TAXON ID: 83.0
+==================================================
+  Habitat: heath
+  Longitude: 8.402138
+  Substrate: soil
+  Habitat: heath
+==================================================
+TAXON ID: 84.0
+==================================================
+  Longitude: 10.438154
+  eventDate: 2018-10-24
+  Substrate: soil
+  Substrate: soil
+  Substrate: soil
+  Longitude: 9.51304
+  Longitude: 10.672085
+  Latitude: 55.33679
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+==================================================
+TAXON ID: 85.0
+==================================================
+  Substrate: soil
+  Habitat: Deciduous woodland
+  Substrate: soil
+  Substrate: soil
+  Substrate: soil
+  Longitude: 15.103279999999998
+  Substrate: soil
+  eventDate: 2019-09-28
+  Latitude: 55.99848000000001
+==================================================
+TAXON ID: 86.0
+==================================================
+  eventDate: 2019-09-07
+  Longitude: 10.29506
+  Latitude: 56.82601999999999
+  eventDate: 2019-10-11
+  Substrate: dead wood (including bark)
+  Longitude: 12.31276
+  Longitude: 9.15221
+  Latitude: 55.8176
+  eventDate: 2012-09-30
+  eventDate: 2014-09-12
+==================================================
+TAXON ID: 87.0
+==================================================
+  Habitat: Deciduous woodland
+  Latitude: 55.784808
+  eventDate: 2018-08-28
+  Longitude: 12.23757
+  eventDate: 2019-07-15
+  Habitat: Deciduous woodland
+  Substrate: soil
+  Substrate: soil
+  Latitude: 55.68334300000001
+  eventDate: 2010-08-28
+  eventDate: 2013-06-23
+  Habitat: park/churchyard
+  Longitude: 11.656837
+  eventDate: 2018-09-14
+  Latitude: 55.81676
+==================================================
+TAXON ID: 88.0
+==================================================
+  Habitat: coniferous woodland/plantation
+  Substrate: soil
+  Longitude: 9.53668
+  Substrate: soil
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+==================================================
+TAXON ID: 89.0
+==================================================
+  Longitude: 12.591168
+  eventDate: 2014-09-01
+  Substrate: soil
+  Longitude: 12.52989
+  Latitude: 55.419089
+==================================================
+TAXON ID: 90.0
+==================================================
+  Substrate: stems of herbs, grass etc
+  Latitude: 55.80474200000001
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+==================================================
+TAXON ID: 91.0
+==================================================
+  Habitat: Deciduous woodland
+==================================================
+TAXON ID: 92.0
+==================================================
+  Substrate: dead wood (including bark)
+  Longitude: 10.54653
+  Longitude: 10.27919
+  Habitat: Unmanaged deciduous woodland
+  Habitat: Forest bog
+  Longitude: 12.04033
+  eventDate: 2017-07-14
+  Latitude: 55.066475
+  Substrate: dead wood (including bark)
+  Habitat: Deciduous woodland
+  Substrate: dead wood (including bark)
+  Substrate: wood
+  eventDate: 2013-09-01
+  Habitat: Unmanaged deciduous woodland
+  Longitude: 10.241232
+  Substrate: dead wood (including bark)
+  Longitude: 10.372778
+  Habitat: Deciduous woodland
+  Latitude: 55.689492
+  Longitude: 11.809433
+  eventDate: 2017-09-12
+  eventDate: 2020-09-11
+  Latitude: 55.80972
+  Latitude: 56.037575
+  Longitude: 11.45185
+  Habitat: garden
+==================================================
+TAXON ID: 93.0
+==================================================
+  Latitude: 55.040707
+  Substrate: soil
+  Latitude: 55.216857
+  Substrate: soil
+  Latitude: 56.164661
+  eventDate: 2013-06-08
+  Habitat: roadside
+  eventDate: 2019-08-29
+  eventDate: 2019-10-06
+  eventDate: 2012-06-26
+  Substrate: soil
+  eventDate: 2019-11-19
+  eventDate: 2020-10-22
+  eventDate: 2013-07-03
+  eventDate: 2019-08-11
+  Longitude: 10.708335
+  Habitat: roadside
+==================================================
+TAXON ID: 94.0
+==================================================
+  Latitude: 56.174753
+  Longitude: 10.250014
+  Habitat: coniferous woodland/plantation
+==================================================
+TAXON ID: 95.0
+==================================================
+  eventDate: 2012-07-21
+  Longitude: 12.590927
+  Habitat: Deciduous woodland
+==================================================
+TAXON ID: 96.0
+==================================================
+  Habitat: Deciduous woodland
+  Habitat: Unmanaged deciduous woodland
+  eventDate: 2018-09-17
+  Longitude: 10.250121
+  Latitude: 55.7828
+  Latitude: 56.082286
+==================================================
+TAXON ID: 97.0
+==================================================
+  Longitude: 10.236211
+==================================================
+TAXON ID: 98.0
+==================================================
+  eventDate: 2013-08-29
+  Substrate: stems of herbs, grass etc
+  Longitude: 12.576858
+  Latitude: 56.6363
+==================================================
+TAXON ID: 99.0
+==================================================
+  Latitude: 54.76175300000001
+  eventDate: 2018-10-17
+  eventDate: 2017-08-17
+  Substrate: soil
+  Substrate: soil
+  Longitude: 11.768275
+  eventDate: 2018-09-27
+  eventDate: 2018-09-23
+  Substrate: soil
+  Longitude: 12.035025
+  Habitat: Deciduous woodland
+  Longitude: 12.404329
+==================================================
+TAXON ID: 100.0
+==================================================
+  Habitat: coniferous woodland/plantation
+==================================================
+TAXON ID: 101.0
+==================================================
+  Longitude: 10.12903
+==================================================
+TAXON ID: 102.0
+==================================================
+  Substrate: soil
+  Latitude: 55.782818000000006
+  Habitat: Deciduous woodland
+==================================================
+TAXON ID: 103.0
+==================================================
+  Longitude: 9.436301
+  Longitude: 12.001791
+  Substrate: soil
+  Longitude: 8.59008
+  Substrate: soil
+  Substrate: soil
+==================================================
+TAXON ID: 104.0
+==================================================
+  Latitude: 55.540176
+  eventDate: 2017-11-16
+  Substrate: soil
+==================================================
+TAXON ID: 105.0
+==================================================
+  Latitude: 56.808432
+  Latitude: 56.808315
+  Latitude: 55.770104
+  Substrate: soil
+  eventDate: 2017-08-18
+  Substrate: soil
+  Latitude: 55.77047
+  Substrate: soil
+  Substrate: soil
+  Longitude: 12.5613
+  Longitude: 12.29981
+  Latitude: 56.80804499999999
+==================================================
+TAXON ID: 106.0
+==================================================
+  eventDate: 2020-09-24
+  Substrate: soil
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  eventDate: 2009-08-23
+  Longitude: 15.053122
+  Latitude: 56.008711
+  eventDate: 2018-10-10
+  Substrate: soil
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: Deciduous woodland
+  Substrate: soil
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  eventDate: 2017-08-22
+  Longitude: 8.428825
+  eventDate: 2018-09-14
+  Substrate: soil
+==================================================
+TAXON ID: 107.0
+==================================================
+  Longitude: 9.62512
+  Longitude: 8.960803
+  Longitude: 15.003047
+  Substrate: soil
+  eventDate: 2019-09-21
+  Substrate: leaf or needle litter
+  Longitude: 12.297085
+  Longitude: 8.73147
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 15.076189
+  Habitat: coniferous woodland/plantation
+  Latitude: 55.013138
+  Habitat: coniferous woodland/plantation
+==================================================
+TAXON ID: 108.0
+==================================================
+  Latitude: 56.144761
+  Substrate: leaf or needle litter
+==================================================
+TAXON ID: 109.0
+==================================================
+  Latitude: 54.77158000000001
+  eventDate: 2017-07-22
+  Longitude: 11.70353
+  Latitude: 55.657213
+  Longitude: 11.705006
+==================================================
+TAXON ID: 110.0
+==================================================
+  Habitat: park/churchyard
+  Substrate: soil
+  Habitat: park/churchyard
+  Longitude: 11.528194
+  Longitude: 11.796553
+==================================================
+TAXON ID: 111.0
+==================================================
+  Habitat: park/churchyard
+  Latitude: 56.060812
+  Longitude: 12.05389
+  Longitude: 11.52773
+  eventDate: 2020-07-21
+  Latitude: 55.855989
+==================================================
+TAXON ID: 112.0
+==================================================
+  Substrate: soil
+  eventDate: 2019-10-22
+  Latitude: 56.881
+  Longitude: 9.70642
+  Longitude: 12.32514
+==================================================
+TAXON ID: 113.0
+==================================================
+  Substrate: leaf or needle litter
+  Substrate: soil
+  Latitude: 55.773375
+  eventDate: 2012-09-22
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  eventDate: 2012-09-29
+  Latitude: 56.788175
+  Latitude: 55.820212
+  eventDate: 2019-10-17
+  Longitude: 9.567375
+  Substrate: wood
+  Substrate: leaf or needle litter
+  Latitude: 55.615968
+  Substrate: dead wood (including bark)
+  Latitude: 57.147113
+  Substrate: soil
+  eventDate: 2019-06-15
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 12.051788
+  Habitat: natural grassland
+==================================================
+TAXON ID: 114.0
+==================================================
+  Substrate: soil
+  Habitat: Unmanaged deciduous woodland
+  eventDate: 2020-09-23
+  Habitat: coniferous woodland/plantation
+==================================================
+TAXON ID: 115.0
+==================================================
+  Longitude: 8.731603
+  eventDate: 2015-10-31
+  Latitude: 57.4317
+  Substrate: soil
+  eventDate: 2017-10-22
+  eventDate: 2009-08-30
+  Substrate: soil
+  eventDate: 2018-10-19
+  Longitude: 8.298630000000001
+==================================================
+TAXON ID: 116.0
+==================================================
+  Substrate: soil
+  Latitude: 55.66834
+  Habitat: Unmanaged deciduous woodland
+  eventDate: 2017-10-15
+  Longitude: 10.50191
+  Latitude: 55.678649
+  eventDate: 2016-07-16
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Latitude: 54.685021
+  eventDate: 2012-08-04
+==================================================
+TAXON ID: 117.0
+==================================================
+  Latitude: 55.75962
+  Substrate: wood
+  eventDate: 2010-08-06
+  eventDate: 2014-07-25
+  Substrate: soil
+  Latitude: 55.68567
+  Latitude: 55.68729
+==================================================
+TAXON ID: 118.0
+==================================================
+==================================================
+TAXON ID: 119.0
+==================================================
+  Habitat: natural grassland
+  Longitude: 10.05726
+  Longitude: 12.4318
+  Habitat: coniferous woodland/plantation
+  Longitude: 11.920613
+  Longitude: 9.891155
+  Habitat: coniferous woodland/plantation
+  Substrate: soil
+  Longitude: 10.730652
+  Substrate: soil
+  Longitude: 11.852778
+  eventDate: 2017-07-07
+==================================================
+TAXON ID: 120.0
+==================================================
+  Latitude: 55.209279
+  eventDate: 2018-08-28
+==================================================
+TAXON ID: 121.0
+==================================================
+  Substrate: leaf or needle litter
+==================================================
+TAXON ID: 122.0
+==================================================
+  eventDate: 2017-08-18
+  Longitude: 11.92304
+  Substrate: soil
+  Latitude: 55.46795
+  Substrate: soil
+  Substrate: soil
+  eventDate: 2020-07-24
+  Longitude: 12.077091
+  Latitude: 55.455142
+  Substrate: soil
+  Longitude: 9.755237
+  Latitude: 55.98931999999999
+  Longitude: 10.526155
+  eventDate: 2018-09-09
+  eventDate: 2020-07-03
+  Habitat: natural grassland
+  Habitat: Unmanaged deciduous woodland
+  Habitat: park/churchyard
+  Substrate: soil
+  Substrate: soil
+  eventDate: 2018-09-15
+  Substrate: soil
+  Substrate: soil
+  Latitude: 56.079328
+==================================================
+TAXON ID: 123.0
+==================================================
+  Latitude: 55.826314
+  Substrate: soil
+  eventDate: 2010-06-25
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+==================================================
+TAXON ID: 124.0
+==================================================
+  Latitude: 55.2713
+  Habitat: park/churchyard
+  Latitude: 56.08420200000001
+  Latitude: 55.676568
+  Latitude: 56.058637
+  Latitude: 56.108704
+==================================================
+TAXON ID: 125.0
+==================================================
+  Substrate: leaf or needle litter
+  Longitude: 9.970574
+  eventDate: 2020-08-30
+  eventDate: 2013-09-24
+==================================================
+TAXON ID: 126.0
+==================================================
+  Habitat: roadside
+  Latitude: 55.49616
+  Latitude: 55.73881
+  eventDate: 2020-07-27
+  Habitat: park/churchyard
+  Habitat: Deciduous woodland
+  Substrate: soil
+  eventDate: 2020-09-16
+  eventDate: 2020-10-23
+  Substrate: soil
+  Longitude: 10.539689
+  Habitat: park/churchyard
+  Longitude: 12.35253
+  Habitat: park/churchyard
+  eventDate: 2020-06-23
+==================================================
+TAXON ID: 127.0
+==================================================
+  Substrate: bark
+  eventDate: 2011-09-22
+  Latitude: 56.029075
+  Longitude: 12.016168
+  Longitude: 12.016168
+==================================================
+TAXON ID: 128.0
+==================================================
+  Latitude: 56.93388
+  Habitat: other habitat
+  Habitat: Willow scrubland
+  Longitude: 9.462027
+==================================================
+TAXON ID: 129.0
+==================================================
+  Longitude: 10.77896
+  eventDate: 2011-08-14
+  Longitude: 9.503535
+  eventDate: 2011-06-23
+  Substrate: soil
+  eventDate: 2012-06-17
+  Habitat: roadside
+==================================================
+TAXON ID: 130.0
+==================================================
+  Longitude: 10.644224
+  Latitude: 55.67569
+  Latitude: 56.2963
+==================================================
+TAXON ID: 131.0
+==================================================
+  Latitude: 55.76804
+  Latitude: 55.02514
+  Longitude: 12.210328
+  Habitat: Deciduous woodland
+  Latitude: 55.131747
+  eventDate: 2018-09-10
+  Latitude: 56.163105
+  eventDate: 2018-08-12
+  eventDate: 2011-07-22
+  Substrate: soil
+  Longitude: 12.33496
+  Longitude: 10.639447
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: soil
+  eventDate: 2020-08-23
+  Longitude: 9.876469
+  Habitat: Deciduous woodland
+  Latitude: 55.851722
+==================================================
+TAXON ID: 132.0
+==================================================
+  eventDate: 2014-06-26
+==================================================
+TAXON ID: 133.0
+==================================================
+  Longitude: 8.158398
+  eventDate: 2019-11-30
+  eventDate: 2012-01-07
+  Habitat: coniferous woodland/plantation
+  Substrate: soil
+  Longitude: 12.23508
+  Longitude: 9.316127
+  Longitude: 9.871472
+  Longitude: 12.3426
+  Substrate: leaf or needle litter
+  Latitude: 56.17719
+  Latitude: 56.667503
+  Substrate: soil
+  Latitude: 55.88282
+  Latitude: 57.15233900000001
+==================================================
+TAXON ID: 134.0
+==================================================
+  Substrate: wood
+==================================================
+TAXON ID: 135.0
+==================================================
+  Substrate: soil
+  Substrate: soil
+==================================================
+TAXON ID: 136.0
+==================================================
+  Latitude: 55.67458000000001
+  Substrate: soil
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 9.528751
+  Substrate: soil
+  Latitude: 56.011869
+  eventDate: 2020-09-20
+  Substrate: soil
+  Longitude: 11.392114
+  Latitude: 56.192298
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  eventDate: 2012-09-01
+  Longitude: 12.106043
+  Latitude: 55.955723
+  eventDate: 2017-08-08
+  Habitat: coniferous woodland/plantation
+  Habitat: coniferous woodland/plantation
+  Substrate: leaf or needle litter
+  Longitude: 9.349958
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Substrate: soil
+==================================================
+TAXON ID: 137.0
+==================================================
+  Longitude: 9.339056
+  Latitude: 56.072280000000006
+  Latitude: 56.137133
+  eventDate: 2015-10-24
+  Latitude: 56.02429
+  Latitude: 56.78887
+  Latitude: 55.969475
+  Substrate: soil
+  Substrate: soil
+  Longitude: 12.24275
+  eventDate: 2013-10-05
+  Latitude: 55.642215
+  eventDate: 2017-08-25
+  eventDate: 2014-10-08
+==================================================
+TAXON ID: 138.0
+==================================================
+  Longitude: 9.898712
+  eventDate: 2011-12-02
+  Latitude: 56.60741
+  Latitude: 55.420636
+  Longitude: 11.844895
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Latitude: 56.644684
+  Habitat: hedgerow
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 11.115573
+  Longitude: 9.63381
+  Longitude: 8.38503
+==================================================
+TAXON ID: 139.0
+==================================================
+  Habitat: natural grassland
+  eventDate: 2017-09-08
+  Longitude: 10.531702
+  eventDate: 2020-09-22
+  Longitude: 12.09979
+  Latitude: 55.7025
+  Latitude: 55.59655
+  Longitude: 11.65667
+  Substrate: soil
+==================================================
+TAXON ID: 140.0
+==================================================
+  eventDate: 2019-08-24
+  Latitude: 55.20152
+  Longitude: 10.203554
+==================================================
+TAXON ID: 141.0
+==================================================
+  Habitat: coniferous woodland/plantation
+  Longitude: 12.552555
+  Habitat: coniferous woodland/plantation
+  Longitude: 9.662776
+  Substrate: soil
+  Habitat: Unmanaged coniferous woodland
+  eventDate: 2020-10-11
+  Substrate: soil
+  Substrate: soil
+  Substrate: soil
+  Longitude: 12.3605
+  Latitude: 55.91362
+  Latitude: 55.935008
+  Substrate: soil
+  Substrate: soil
+  Longitude: 8.871443
+  Habitat: coniferous woodland/plantation
+  Habitat: coniferous woodland/plantation
+==================================================
+TAXON ID: 142.0
+==================================================
+  Substrate: soil
+==================================================
+TAXON ID: 143.0
+==================================================
+  eventDate: 2018-10-09
+  eventDate: 2019-09-02
+  Longitude: 11.522832
+==================================================
+TAXON ID: 144.0
+==================================================
+  Latitude: 56.166773
+  Habitat: coniferous woodland/plantation
+  Substrate: leaf or needle litter
+  Longitude: 11.723803
+==================================================
+TAXON ID: 145.0
+==================================================
+  Substrate: other substrate
+  eventDate: 2020-01-26
+  Longitude: 11.847989
+  Substrate: leaf or needle litter
+  Latitude: 56.92193
+  Habitat: coniferous woodland/plantation
+  Latitude: 56.96921700000001
+==================================================
+TAXON ID: 146.0
+==================================================
+  Latitude: 56.2893
+  Longitude: 11.991513
+==================================================
+TAXON ID: 147.0
+==================================================
+  Latitude: 55.386309
+  Latitude: 55.716272
+  eventDate: 2019-10-23
+  Habitat: roadside
+==================================================
+TAXON ID: 148.0
+==================================================
+==================================================
+TAXON ID: 149.0
+==================================================
+  Latitude: 55.07621
+  Substrate: faeces
+  Longitude: 11.74383
+  Substrate: faeces
+==================================================
+TAXON ID: 150.0
+==================================================
+  Habitat: coniferous woodland/plantation
+==================================================
+TAXON ID: 151.0
+==================================================
+  Longitude: 11.720851
+  Substrate: dead wood (including bark)
+==================================================
+TAXON ID: 152.0
+==================================================
+  Habitat: Thorny scrubland
+  Substrate: bark of living trees
+  Latitude: 56.644684
+  eventDate: 2020-10-26
+  eventDate: 2015-12-17
+==================================================
+TAXON ID: 153.0
+==================================================
+  Longitude: 10.259583
+  Substrate: soil
+  eventDate: 2013-10-20
+==================================================
+TAXON ID: 154.0
+==================================================
+  eventDate: 2010-06-09
+  Longitude: 12.520326
+  Longitude: 10.385315
+  Longitude: 9.783428
+  Longitude: 10.385315
+  Habitat: coniferous woodland/plantation
+  Longitude: 9.330394
+  Latitude: 56.043521
+==================================================
+TAXON ID: 155.0
+==================================================
+  Latitude: 55.20316999999999
+  Latitude: 54.74289
+  Habitat: Deciduous woodland
+==================================================
+TAXON ID: 156.0
+==================================================
+  Substrate: soil
+  Latitude: 56.039157
+  Habitat: Deciduous woodland
+  Latitude: 56.06888000000001
+  Longitude: 12.306413
+==================================================
+TAXON ID: 157.0
+==================================================
+  eventDate: 2017-06-13
+  Habitat: natural grassland
+==================================================
+TAXON ID: 158.0
+==================================================
+  Substrate: dead stems of herbs, grass etc
+  Substrate: stems of herbs, grass etc
+  Latitude: 55.650383
+  Habitat: bog
+  Longitude: 12.477523
+  eventDate: 2019-12-30
+==================================================
+TAXON ID: 159.0
+==================================================
+  eventDate: 2017-07-12
+  Substrate: soil
+==================================================
+TAXON ID: 160.0
+==================================================
+  Substrate: soil
+  Habitat: Deciduous woodland
+  Longitude: 8.317111
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+  Longitude: 8.317111
+  Latitude: 56.15776999999999
+  Latitude: 55.129876
+  eventDate: 2017-10-21
+  Longitude: 12.180928
+==================================================
+TAXON ID: 161.0
+==================================================
+  eventDate: 2018-09-15
+  Habitat: roadside
+  Substrate: soil
+  eventDate: 2009-08-18
+  Longitude: 11.66465
+==================================================
+TAXON ID: 162.0
+==================================================
+  Habitat: dune
+  Longitude: 12.106693
+  Latitude: 55.54988
+  Latitude: 55.16926
+  Substrate: stems of herbs, grass etc
+  Substrate: soil
+  Longitude: 11.99346
+  Longitude: 12.32606
+==================================================
+TAXON ID: 163.0
+==================================================
+  eventDate: 2019-08-04
+  Longitude: 12.532748
+==================================================
+TAXON ID: 164.0
+==================================================
+  Latitude: 56.036089
+  Substrate: soil
+  eventDate: 2020-10-13
+  eventDate: 2017-10-05
+  Habitat: Deciduous woodland
+  Longitude: 12.126678
+==================================================
+TAXON ID: 165.0
+==================================================
+  Longitude: 12.048886
+==================================================
+TAXON ID: 166.0
+==================================================
+  eventDate: 2016-09-03
+  Habitat: park/churchyard
+  Substrate: soil
+  eventDate: 2019-08-24
+  Latitude: 55.94658
+  Latitude: 56.57815
+  Longitude: 10.804453
+  Habitat: Unmanaged deciduous woodland
+  Substrate: soil
+==================================================
+TAXON ID: 167.0
+==================================================
+  Habitat: Deciduous woodland
+  Latitude: 55.765891
+  Latitude: 55.825202
+==================================================
+TAXON ID: 168.0
+==================================================
+  eventDate: 2019-06-15
+  Substrate: dead wood (including bark)
+  Habitat: Unmanaged deciduous woodland
+  eventDate: 2019-06-11
+  Longitude: 11.84203
+  Longitude: 9.9939
+==================================================
+TAXON ID: 169.0
+==================================================
+  Latitude: 55.509965
+  eventDate: 2017-08-07
+  Substrate: soil
+  eventDate: 2016-11-06
+==================================================
+TAXON ID: 170.0
+==================================================
+  Latitude: 55.67659200000001
+  Habitat: park/churchyard
+==================================================
+TAXON ID: 171.0
+==================================================
+  Latitude: 55.67396700000001
+  Longitude: 11.844265
+  eventDate: 2010-09-17
+  Latitude: 55.38182
+  eventDate: 2020-09-08
+==================================================
+TAXON ID: 172.0
+==================================================
+  Longitude: 12.084258
+  Habitat: garden
+  Latitude: 56.126718
+  Substrate: leaf or needle litter
+  Latitude: 56.02517
+  Habitat: Unmanaged deciduous woodland
+==================================================
+TAXON ID: 173.0
+==================================================
+  Habitat: Deciduous woodland
+  Habitat: park/churchyard
+  eventDate: 2013-09-12
+==================================================
+TAXON ID: 174.0
+==================================================
+  Longitude: 9.264528
+==================================================
+TAXON ID: 175.0
+==================================================
+  Substrate: soil
+  Latitude: 55.21003
+  Latitude: 57.44395600000001
+==================================================
+TAXON ID: 176.0
+==================================================
+  Habitat: Deciduous woodland
+  Latitude: 54.978889
+  Longitude: 10.231615
+  Substrate: soil
+==================================================
+TAXON ID: 177.0
+==================================================
+  Substrate: dead wood (including bark)
+  Substrate: bark of living trees
+  Longitude: 9.75588
+==================================================
+TAXON ID: 178.0
+==================================================
+==================================================
+TAXON ID: 179.0
+==================================================
+  Longitude: 12.306947
+  Habitat: Mixed woodland (with coniferous and deciduous trees)
+==================================================
+TAXON ID: 180.0
+==================================================
+  eventDate: 2020-07-30
+  Longitude: 12.484211
+  Longitude: 12.001929
+==================================================
+TAXON ID: 181.0
+==================================================
+  Substrate: soil
+==================================================
+TAXON ID: 182.0
+==================================================
+  Longitude: 11.798183
