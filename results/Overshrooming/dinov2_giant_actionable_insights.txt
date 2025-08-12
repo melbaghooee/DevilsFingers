@@ -1,0 +1,147 @@
+Overall Model Performance: 0.908 accuracy
+
+🔄 TOP CONFUSION PAIRS:
+   1. '29' → '64' (14 times, 50.0% of true class)
+
+      📸 MISCLASSIFIED EXAMPLES TO INSPECT:
+        🖼️  fungi_train014562.jpg
+          🎯 Confidence: 0.811 (predicted) vs 0.185 (true)
+          ⚠️  HIGH CONFIDENCE ERROR - Review this image carefully!
+
+        🖼️  fungi_train021121.jpg
+          🎯 Confidence: 0.515 (predicted) vs 0.485 (true)
+
+        🖼️  fungi_train008146.jpg
+          🎯 Confidence: 0.768 (predicted) vs 0.037 (true)
+
+      ✅ TYPICAL 29 EXAMPLES (for comparison):
+        📝 fungi_train010565.jpg
+        📝 fungi_train000510.jpg
+
+      ✅ TYPICAL 64 EXAMPLES (for comparison):
+        📝 fungi_train022234.jpg
+        📝 fungi_train016918.jpg
+
+   2. '60' → '16' (7 times, 13.7% of true class)
+
+      📸 MISCLASSIFIED EXAMPLES TO INSPECT:
+        🖼️  fungi_train002344.jpg
+          🎯 Confidence: 0.556 (predicted) vs 0.130 (true)
+
+        🖼️  fungi_train009231.jpg
+          🎯 Confidence: 0.573 (predicted) vs 0.139 (true)
+
+        🖼️  fungi_train000010.jpg
+          🎯 Confidence: 0.971 (predicted) vs 0.005 (true)
+          ⚠️  HIGH CONFIDENCE ERROR - Review this image carefully!
+
+      ✅ TYPICAL 60 EXAMPLES (for comparison):
+        📝 fungi_train005105.jpg
+        📝 fungi_train003693.jpg
+
+      ✅ TYPICAL 16 EXAMPLES (for comparison):
+        📝 fungi_train009953.jpg
+        📝 fungi_train005207.jpg
+
+   3. '50' → '37' (6 times, 8.7% of true class)
+
+      📸 MISCLASSIFIED EXAMPLES TO INSPECT:
+        🖼️  fungi_train017428.jpg
+          🎯 Confidence: 0.886 (predicted) vs 0.018 (true)
+          ⚠️  HIGH CONFIDENCE ERROR - Review this image carefully!
+
+        🖼️  fungi_train024447.jpg
+          🎯 Confidence: 0.541 (predicted) vs 0.077 (true)
+
+        🖼️  fungi_train019080.jpg
+          🎯 Confidence: 0.986 (predicted) vs 0.001 (true)
+          ⚠️  HIGH CONFIDENCE ERROR - Review this image carefully!
+
+      ✅ TYPICAL 50 EXAMPLES (for comparison):
+        📝 fungi_train021637.jpg
+        📝 fungi_train005671.jpg
+
+      ✅ TYPICAL 37 EXAMPLES (for comparison):
+        📝 fungi_train013000.jpg
+        📝 fungi_train015189.jpg
+
+   4. '60' → '34' (6 times, 11.8% of true class)
+
+      📸 MISCLASSIFIED EXAMPLES TO INSPECT:
+        🖼️  fungi_train006987.jpg
+          🎯 Confidence: 0.605 (predicted) vs 0.393 (true)
+
+        🖼️  fungi_train005675.jpg
+          🎯 Confidence: 0.844 (predicted) vs 0.148 (true)
+          ⚠️  HIGH CONFIDENCE ERROR - Review this image carefully!
+
+        🖼️  fungi_train004606.jpg
+          🎯 Confidence: 0.674 (predicted) vs 0.314 (true)
+
+      ✅ TYPICAL 60 EXAMPLES (for comparison):
+        📝 fungi_train005105.jpg
+        📝 fungi_train003693.jpg
+
+      ✅ TYPICAL 34 EXAMPLES (for comparison):
+        📝 fungi_train024923.jpg
+        📝 fungi_train021476.jpg
+
+   5. '61' → '156' (6 times, 22.2% of true class)
+
+      📸 MISCLASSIFIED EXAMPLES TO INSPECT:
+        🖼️  fungi_train016004.jpg
+          🎯 Confidence: 0.616 (predicted) vs 0.382 (true)
+
+        🖼️  fungi_train007315.jpg
+          🎯 Confidence: 0.488 (predicted) vs 0.001 (true)
+
+        🖼️  fungi_train011435.jpg
+          🎯 Confidence: 0.714 (predicted) vs 0.103 (true)
+
+      ✅ TYPICAL 61 EXAMPLES (for comparison):
+        📝 fungi_train006804.jpg
+        📝 fungi_train018616.jpg
+
+      ✅ TYPICAL 156 EXAMPLES (for comparison):
+        📝 fungi_train000113.jpg
+        📝 fungi_train015968.jpg
+
+
+💡 CONFUSION ANALYSIS INSIGHTS:
+   📋 ACTION ITEMS:
+      1. Manually inspect the misclassified examples listed above
+      2. Compare misclassified examples with typical examples of both classes
+      3. Look for visual patterns in misclassified images
+      4. Check if confused species share morphological features
+      5. Verify ground truth labels for high-confidence errors
+      6. Consider collecting more diverse samples for confused classes
+
+   🔍 INSPECTION TIPS:
+      - Pay special attention to high-confidence errors (>0.8)
+      - Compare misclassified images with typical examples of each class
+      - Look for systematic differences in image conditions or angles
+      - Check if images were taken in similar environments/conditions
+      - Look for image quality issues (blur, lighting, angle)
+      - Verify taxonomic relationships between confused species
+
+⚠️  PROBLEMATIC CLASSES (46 classes need attention):
+
+   📊 DATA SCARCITY (46 classes):
+      - 36: only 5 samples
+      - 41: only 8 samples
+      - 59: only 5 samples
+   💡 Solution: Collect more data, use data augmentation, consider class weights
+
+🎯 RECOMMENDATIONS:
+   1. 🟢 Good accuracy - Focus on fine-tuning
+      - Address remaining confusion pairs
+      - Implement confidence-based rejection
+      - Consider ensemble methods
+   2. 📊 Data improvements:
+      - Collect more samples for rare classes
+      - Review and clean mislabeled samples
+      - Add more diverse augmentations
+   3. 🔧 Model improvements:
+      - Experiment with different classifier head depths
+      - Try different image resolutions
+      - Consider hierarchical classification for related species
