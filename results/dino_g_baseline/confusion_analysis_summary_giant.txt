@@ -1,0 +1,74 @@
+🍄 FUNGI CLASSIFICATION - CONFUSION ANALYSIS SUMMARY
+=======================================================
+
+ANALYSIS OVERVIEW:
+This confusion analysis provides detailed insights into class pairs that are most frequently confused by the model.
+For each confusion pair, we provide three types of examples for visual comparison:
+
+1. ❌ MISCLASSIFIED EXAMPLES: Images that were incorrectly predicted
+   - Shows what the model incorrectly thinks belongs to the predicted class
+   - Helps identify visual patterns that confuse the model
+
+2. ✅ CORRECTLY CLASSIFIED TRUE CLASS: Images correctly identified as the true class
+   - Shows what the true class should look like
+   - Provides visual reference for the actual class characteristics
+
+3. ✅ CORRECTLY CLASSIFIED PREDICTED CLASS: Images correctly identified as the predicted class
+   - Shows what the predicted class should look like
+   - Helps understand why the model might confuse these classes
+
+CONFUSION PAIRS ANALYZED:
+-------------------------
+ 1. 13 → 3
+    Count: 33 (68.8% of 13 predictions)
+    Examples: 5 misclassified, 5 correct 13, 5 correct 3
+
+ 2. 29 → 64
+    Count: 26 (92.9% of 29 predictions)
+    Examples: 5 misclassified, 2 correct 29, 5 correct 64
+
+ 3. 49 → 50
+    Count: 15 (24.2% of 49 predictions)
+    Examples: 5 misclassified, 5 correct 49, 5 correct 50
+
+ 4. 137 → 165
+    Count: 15 (57.7% of 137 predictions)
+    Examples: 5 misclassified, 4 correct 137, 5 correct 165
+
+ 5. 31 → 3
+    Count: 11 (100.0% of 31 predictions)
+    Examples: 5 misclassified, 0 correct 31, 5 correct 3
+
+ 6. 14 → 52
+    Count: 9 (11.1% of 14 predictions)
+    Examples: 5 misclassified, 5 correct 14, 5 correct 52
+
+ 7. 19 → 171
+    Count: 9 (34.6% of 19 predictions)
+    Examples: 5 misclassified, 5 correct 19, 5 correct 171
+
+ 8. 34 → 16
+    Count: 9 (20.5% of 34 predictions)
+    Examples: 5 misclassified, 5 correct 34, 5 correct 16
+
+ 9. 81 → 126
+    Count: 9 (42.9% of 81 predictions)
+    Examples: 5 misclassified, 5 correct 81, 5 correct 126
+
+10. 28 → 58
+    Count: 8 (30.8% of 28 predictions)
+    Examples: 5 misclassified, 3 correct 28, 5 correct 58
+
+FILES GENERATED:
+---------------
+• confusion_analysis_enhanced_giant.html - Interactive visual report
+• confusion_analysis_enhanced_giant.csv - Detailed data export
+• confusion_analysis_summary_giant.txt - This summary file
+
+HOW TO USE:
+----------
+1. Open the HTML file in a web browser for easy visual inspection
+2. Use the CSV file for programmatic analysis or data filtering
+3. Compare misclassified vs correctly classified examples to understand confusion patterns
+4. Look for visual similarities between confused classes
+5. Consider data augmentation or additional training samples for confused classes
