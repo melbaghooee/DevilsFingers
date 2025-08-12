@@ -25,6 +25,9 @@ import argparse
 import xgboost as xgb
 import joblib
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
@@ -74,6 +77,77 @@ def get_dinov2_feature_dim(model_name):
         raise ValueError(f"Unknown DINOv2 model: {model_name}")
     
 
+def load_and_preprocess_metadata(data_file):
+    """
+    Load and preprocess metadata using sklearn preprocessing utilities.
+    """
+    
+    df = pd.read_csv(data_file)
+    
+    # Define column types
+    categorical_columns = ["Habitat", "Substrate"]
+    numeric_columns = ["Latitude", "Longitude"]
+    date_column = "eventDate"
+    
+    # Create a copy for processing
+    df_processed = df.copy()
+    
+    # Handle date column
+    df_processed[date_column] = pd.to_datetime(df_processed[date_column], errors="coerce")
+    df_processed["eventYear"] = df_processed[date_column].dt.year
+    df_processed["eventMonth"] = df_processed[date_column].dt.month
+    df_processed["eventDay"] = df_processed[date_column].dt.day
+    
+    # Add derived date features to numeric columns
+    date_features = ["eventYear", "eventMonth", "eventDay"]
+    all_numeric_columns = numeric_columns + date_features
+    
+    # Create preprocessing pipeline
+    preprocessor = ColumnTransformer(
+        transformers=[
+            # Categorical features: impute missing values and one-hot encode
+            ('cat', OneHotEncoder(sparse_output=False, handle_unknown='ignore'), categorical_columns),
+            # Numeric features: impute missing values and standardize
+            ('num', StandardScaler(), all_numeric_columns)
+        ],
+        remainder='passthrough'  # Keep other columns as-is
+    )
+    
+    # Fit and transform the features
+    feature_columns = categorical_columns + all_numeric_columns
+    X = df_processed[feature_columns]
+    
+    # Handle missing values before preprocessing
+    categorical_imputer = SimpleImputer(strategy='constant', fill_value='Unknown', missing_values=pd.NA)
+    numeric_imputer = SimpleImputer(strategy='mean')
+    
+    # Apply imputation
+    X[categorical_columns] = categorical_imputer.fit_transform(X[categorical_columns])
+    X[all_numeric_columns] = numeric_imputer.fit_transform(X[all_numeric_columns])
+    
+    # Apply preprocessing
+    X_processed = preprocessor.fit_transform(X)
+    
+    # Create feature names for the processed data
+    cat_feature_names = preprocessor.named_transformers_['cat'].get_feature_names_out(categorical_columns)
+    num_feature_names = all_numeric_columns
+    feature_names = list(cat_feature_names) + num_feature_names
+    
+    # Create processed DataFrame
+    df_features = pd.DataFrame(X_processed, columns=feature_names, index=df.index)
+
+    # Exclude Unknowns
+    cols = [c for c in df_features.columns if 'Unknown' not in c]
+    df_features = df_features[cols]
+    
+    # Add back essential columns
+    df_final = pd.concat([
+        df[['filename_index', 'taxonID_index']],  # Keep original identifiers
+        df_features
+    ], axis=1)
+
+    return df_final
+
 def extract_metadata_features(df, metadata_file):
     """
     Pre-process metadata features from the DataFrame and save to a HDF5 file.
@@ -83,49 +157,18 @@ def extract_metadata_features(df, metadata_file):
         print(f"Metadata features file {metadata_file} already exists. Skipping extraction.")
         return
 
-    # define categorical and numeric columns
-    categorical_columns = ["Habitat", "Substrate"]
-    numeric_columns = ["Latitude", "Longitude"]
-
-    df_processed = df.copy()
-
-    # handle missing value in columns
-    for col in categorical_columns:
-        df_processed[col] = df_processed[col].fillna("Unknown")
-        df_processed[col] = df_processed[col].astype("category")
-
-    for col in numeric_columns:
-        df_processed[col] = df_processed[col].fillna(df_processed[col].mean())
-
-    # encode categorical columns
-    for col in categorical_columns:
-        df_processed[col] = df_processed[col].cat.codes
-
-    # process date column
-    col = "eventDate"
-    df_processed[col] = pd.to_datetime(df_processed[col], errors="coerce")
-    df_processed[col] = df_processed[col].fillna(df_processed[col].mean())
-
-    df_processed["eventYear"] = df_processed["eventDate"].dt.year.astype("float32")
-    df_processed["eventMonth"] = df_processed["eventDate"].dt.month.astype("float32")
-    df_processed["eventDay"] = df_processed["eventDate"].dt.day.astype("float32")
-
     # save processed DataFrame to HDF5
     with h5py.File(metadata_file, "w") as h5f:
-        h5f.create_dataset('filenames', data=df_processed['filename_index'].values, dtype=h5py.string_dtype())
+        h5f.create_dataset('filenames', data=df['filename_index'].values, dtype=h5py.string_dtype())
 
-        for col in categorical_columns:
-            h5f.create_dataset(col, data=df_processed[col].values, dtype='int32')
-        for col in numeric_columns:
-            h5f.create_dataset(col, data=df_processed[col].values, dtype='float32')
-        
-        h5f.create_dataset("eventYear", data=df_processed["eventYear"].values, dtype='float32')
-        h5f.create_dataset("eventMonth", data=df_processed["eventMonth"].values, dtype='float32')
-        h5f.create_dataset("eventDay", data=df_processed["eventDay"].values, dtype='float32')
-        
+        for col in df.columns:
+            if col in ['filename_index', 'taxonID_index']:
+                continue
+            
+            h5f.create_dataset(col.replace('/', '_'), data=df[col].values.astype(np.float32), dtype='float32')
+
     print(f"Metadata features saved to {metadata_file}")
-
-
+    
 def extract_dinov2_features(df, image_path, features_file, dinov2_model_name='dinov2_vitg14'):
     """
     Extract DINOv2 features for all images and save them to HDF5 file.
@@ -367,7 +410,7 @@ class TransformerClassifier(nn.Module):
     Transformer-based classifier for pre-computed features.
     Uses multi-head self-attention to learn feature relationships.
     """
-    def __init__(self, feature_dim, num_classes, num_heads=1, num_layers=1, hidden_dim=512, dropout=0.1):
+    def __init__(self, feature_dim, num_classes, num_heads=8, num_layers=3, hidden_dim=512, dropout=0.1):
         super(TransformerClassifier, self).__init__()
         
         # Input projection to match transformer hidden dimension
@@ -546,7 +589,7 @@ def train_transformer_classifier(train_features_file, val_features_file, train_m
     model.to(device)
     
     # Define Optimization, Scheduler, and Criterion
-    optimizer = Adam(model.parameters(), lr=0.00001, weight_decay=1e-4)
+    optimizer = Adam(model.parameters(), lr=0.0001, weight_decay=1e-4)
     scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=3, verbose=True, eps=1e-8)
     criterion = nn.CrossEntropyLoss()
     
@@ -730,7 +773,7 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
     initialize_csv_logger(csv_file_path)
 
     # Load metadata
-    df = pd.read_csv(data_file)
+    df = load_and_preprocess_metadata(data_file)
     train_df = df[df['filename_index'].str.startswith('fungi_train')]
     train_df, val_df = train_test_split(train_df, test_size=0.2, random_state=42)
     print('Training size', len(train_df))
@@ -918,7 +961,7 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
     best_trained_model = os.path.join(checkpoint_dir, "best_accuracy.pth")
     output_csv_path = os.path.join(checkpoint_dir, "test_predictions.csv")
 
-    df = pd.read_csv(data_file)
+    df = load_and_preprocess_metadata(data_file)
     test_df = df[df['filename_index'].str.startswith('fungi_test')]
     
     # Extract features for test set
