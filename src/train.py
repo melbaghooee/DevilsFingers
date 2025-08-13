@@ -225,53 +225,40 @@ def extract_dinov2_features(df, image_path, features_file, dinov2_model_name='di
 
 class FungiFeatureDataset(Dataset):
     """
-    Dataset that loads pre-computed DINOv2 features from HDF5 file.
+    Dataset that loads pre-computed DINOv2 features and optionally metadata features from HDF5 files.
+    If metadata_file is provided, concatenates them into a single feature vector.
+    If metadata_file is None, returns only DINOv2 features.
     """
-    def __init__(self, features_file):
-        self.features_file = features_file
-        with h5py.File(features_file, 'r') as h5f:
-            self.length = h5f['features'].shape[0]
-            self.filenames = [fname.decode() for fname in h5f['filenames'][:]]
-            self.labels = h5f['labels'][:]
-    
-    def __len__(self):
-        return self.length
-    
-    def __getitem__(self, idx):
-        with h5py.File(self.features_file, 'r') as h5f:
-            features = torch.tensor(h5f['features'][idx], dtype=torch.float32)
-            label = int(self.labels[idx])
-            filename = self.filenames[idx]
-        return features, label, filename
-
-class FungiCombinedFeatureDataset(Dataset):
-    """
-    Dataset that loads both pre-computed DINOv2 features and metadata features from HDF5 files.
-    Concatenates them into a single feature vector.
-    """
-    def __init__(self, features_file, metadata_file):
+    def __init__(self, features_file, metadata_file=None):
         self.features_file = features_file
         self.metadata_file = metadata_file
+        self.use_metadata = metadata_file is not None
         
-        # Load basic info from both files and ensure they match
+        # Load basic info from features file
         with h5py.File(features_file, 'r') as h5f:
             self.length = h5f['features'].shape[0]
             self.dinov2_filenames = [fname.decode() for fname in h5f['filenames'][:]]
             self.labels = h5f['labels'][:]
             self.dinov2_feature_dim = h5f['features'].shape[1]
         
-        with h5py.File(metadata_file, 'r') as h5f:
-            self.metadata_filenames = [fname.decode() for fname in h5f['filenames'][:]]
-            # Count metadata features (excluding filenames)
-            self.metadata_feature_names = [key for key in h5f.keys() if key != 'filenames']
-            self.metadata_feature_dim = len(self.metadata_feature_names)
-        
-        # Verify that filenames match between both files
-        assert self.dinov2_filenames == self.metadata_filenames, "Filenames must match between DINOv2 and metadata files"
-        
-        self.total_feature_dim = self.dinov2_feature_dim + self.metadata_feature_dim
-        print(f"Combined feature dimensions: DINOv2({self.dinov2_feature_dim}) + Metadata({self.metadata_feature_dim}) = {self.total_feature_dim}")
-        print(f"Metadata features: {self.metadata_feature_names}")
+        if self.use_metadata:
+            # Load metadata info and verify compatibility
+            with h5py.File(metadata_file, 'r') as h5f:
+                self.metadata_filenames = [fname.decode() for fname in h5f['filenames'][:]]
+                # Count metadata features (excluding filenames)
+                self.metadata_feature_names = [key for key in h5f.keys() if key != 'filenames']
+                self.metadata_feature_dim = len(self.metadata_feature_names)
+            
+            # Verify that filenames match between both files
+            assert self.dinov2_filenames == self.metadata_filenames, "Filenames must match between DINOv2 and metadata files"
+            
+            self.total_feature_dim = self.dinov2_feature_dim + self.metadata_feature_dim
+            print(f"Combined feature dimensions: DINOv2({self.dinov2_feature_dim}) + Metadata({self.metadata_feature_dim}) = {self.total_feature_dim}")
+            print(f"Metadata features: {self.metadata_feature_names}")
+        else:
+            # Only using DINOv2 features
+            self.total_feature_dim = self.dinov2_feature_dim
+            print(f"Using DINOv2 features only: dimension = {self.dinov2_feature_dim}")
     
     def __len__(self):
         return self.length
@@ -283,17 +270,18 @@ class FungiCombinedFeatureDataset(Dataset):
             label = int(self.labels[idx])
             filename = self.dinov2_filenames[idx]
         
-        # Load metadata features
-        with h5py.File(self.metadata_file, 'r') as h5f:
-            metadata_features = []
-            for feature_name in self.metadata_feature_names:
-                metadata_features.append(float(h5f[feature_name][idx]))
-            metadata_features = torch.tensor(metadata_features, dtype=torch.float32)
-        
-        # Concatenate features
-        combined_features = torch.cat([dinov2_features, metadata_features], dim=0)
-        
-        return combined_features, label, filename
+        if self.use_metadata:
+            # Load metadata features
+            with h5py.File(self.metadata_file, 'r') as h5f:
+                metadata_features = [h5f[k][idx] for k in self.metadata_feature_names]
+                metadata_features = torch.tensor(metadata_features, dtype=torch.float32)
+            
+            # Concatenate features
+            combined_features = torch.cat([dinov2_features, metadata_features], dim=0)
+            return combined_features, label, filename
+        else:
+            # Return only DINOv2 features
+            return dinov2_features, label, filename
 
 class LinearClassifier(nn.Module):
     """
@@ -481,16 +469,15 @@ def train_transformer_classifier(train_features_file, val_features_file, train_m
     if use_metadata:
         print("=== Training Transformer Classifier with Combined Features ===")
         # Initialize DataLoaders with combined features
-        train_dataset = FungiCombinedFeatureDataset(train_features_file, train_metadata_file)
-        valid_dataset = FungiCombinedFeatureDataset(val_features_file, val_metadata_file)
+        train_dataset = FungiFeatureDataset(train_features_file, train_metadata_file)
+        valid_dataset = FungiFeatureDataset(val_features_file, val_metadata_file)
         feature_dim = train_dataset.total_feature_dim
     else:
         print("=== Training Transformer Classifier with DinoV2 Features Only ===")
         # Initialize DataLoaders with DinoV2 features only
-        train_dataset = FungiFeatureDataset(train_features_file)
-        valid_dataset = FungiFeatureDataset(val_features_file)
-        with h5py.File(train_features_file, 'r') as h5f:
-            feature_dim = h5f['features'].shape[1]  # DinoV2 feature dimension only
+        train_dataset = FungiFeatureDataset(train_features_file, metadata_file=None)
+        valid_dataset = FungiFeatureDataset(val_features_file, metadata_file=None)
+        feature_dim = train_dataset.total_feature_dim
         print(f"DinoV2 feature dimension: {feature_dim}")
     
     train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True, num_workers=4)
@@ -644,14 +631,13 @@ def evaluate_transformer_on_test_set(test_features_file, test_metadata_file, che
     if use_metadata:
         print("=== Evaluating Transformer on Test Set with Combined Features ===")
         # Load combined test data
-        test_dataset = FungiCombinedFeatureDataset(test_features_file, test_metadata_file)
+        test_dataset = FungiFeatureDataset(test_features_file, test_metadata_file)
         feature_dim = test_dataset.total_feature_dim
     else:
         print("=== Evaluating Transformer on Test Set with DinoV2 Features Only ===")
         # Load DinoV2 test data only
-        test_dataset = FungiFeatureDataset(test_features_file)
-        with h5py.File(test_features_file, 'r') as h5f:
-            feature_dim = h5f['features'].shape[1]  # DinoV2 feature dimension only
+        test_dataset = FungiFeatureDataset(test_features_file, metadata_file=None)
+        feature_dim = test_dataset.total_feature_dim
     
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
     
@@ -695,16 +681,15 @@ def train_linear_classifier(train_features_file, val_features_file, train_metada
     if use_metadata:
         print("=== Training Linear Classifier with Combined Features ===")
         # Initialize DataLoaders with combined features (DINOv2 + metadata)
-        train_dataset = FungiCombinedFeatureDataset(train_features_file, train_metadata_file)
-        valid_dataset = FungiCombinedFeatureDataset(val_features_file, val_metadata_file)
+        train_dataset = FungiFeatureDataset(train_features_file, train_metadata_file)
+        valid_dataset = FungiFeatureDataset(val_features_file, val_metadata_file)
         feature_dim = train_dataset.total_feature_dim  # Use combined feature dimension
     else:
         print("=== Training Linear Classifier with DinoV2 Features Only ===")
         # Initialize DataLoaders with DinoV2 features only
-        train_dataset = FungiFeatureDataset(train_features_file)
-        valid_dataset = FungiFeatureDataset(val_features_file)
-        with h5py.File(train_features_file, 'r') as h5f:
-            feature_dim = h5f['features'].shape[1]  # DinoV2 feature dimension only
+        train_dataset = FungiFeatureDataset(train_features_file, metadata_file=None)
+        valid_dataset = FungiFeatureDataset(val_features_file, metadata_file=None)
+        feature_dim = train_dataset.total_feature_dim
         print(f"DinoV2 feature dimension: {feature_dim}")
     
     train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True, num_workers=4)
@@ -851,14 +836,13 @@ def evaluate_linear_on_test_set(test_features_file, test_metadata_file, checkpoi
     if use_metadata:
         print("=== Evaluating Linear Classifier on Test Set with Combined Features ===")
         # Use combined features (DINOv2 + metadata) for evaluation
-        test_dataset = FungiCombinedFeatureDataset(test_features_file, test_metadata_file)
+        test_dataset = FungiFeatureDataset(test_features_file, test_metadata_file)
         feature_dim = test_dataset.total_feature_dim  # Use combined feature dimension
     else:
         print("=== Evaluating Linear Classifier on Test Set with DinoV2 Features Only ===")
         # Use DinoV2 features only for evaluation
-        test_dataset = FungiFeatureDataset(test_features_file)
-        with h5py.File(test_features_file, 'r') as h5f:
-            feature_dim = h5f['features'].shape[1]  # DinoV2 feature dimension only
+        test_dataset = FungiFeatureDataset(test_features_file, metadata_file=None)
+        feature_dim = test_dataset.total_feature_dim
     
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
 
