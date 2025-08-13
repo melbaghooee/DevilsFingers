@@ -760,57 +760,10 @@ def evaluate_transformer_on_test_set(test_features_file, test_metadata_file, che
     
     print(f"Transformer results saved to {output_csv_path}")
 
-def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name='dinov2_vitg14', classifier_type='linear'):
-    """
-    Train the DINOv2 + classifier and save the best models based on validation accuracy and loss.
-    Supports both linear and XGBoost classifiers.
-    """
-    # Ensure checkpoint directory exists
-    ensure_folder(checkpoint_dir)
-
-    # Set Logger
-    csv_file_path = os.path.join(checkpoint_dir, 'train.csv')
-    initialize_csv_logger(csv_file_path)
-
-    # Load metadata
-    df = load_and_preprocess_metadata(data_file)
-    train_df = df[df['filename_index'].str.startswith('fungi_train')]
-    train_df, val_df = train_test_split(train_df, test_size=0.2, random_state=42)
-    print('Training size', len(train_df))
-    print('Validation size', len(val_df))
-
-    # Feature extraction step - extract and save DINOv2 features
-    features_dir = os.path.join(ROOT_DIR, 'data', 'features', dinov2_model_name)
-    ensure_folder(features_dir)
+def train_linear_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes):
+    """Train Linear classifier on pre-computed combined features."""
+    print("=== Training Linear Classifier with Combined Features ===")
     
-    train_features_file = os.path.join(features_dir, 'train_features.h5')
-    val_features_file = os.path.join(features_dir, 'val_features.h5')
-
-    metadata_dir = os.path.join(ROOT_DIR, 'data', 'metadata')
-    ensure_folder(metadata_dir)
-
-    train_metadata_file = os.path.join(metadata_dir, 'train_metadata.h5')
-    val_metadata_file = os.path.join(metadata_dir, 'val_metadata.h5')
-
-    print("=== Feature Extraction Phase ===")
-    extract_dinov2_features(train_df, image_path, train_features_file, dinov2_model_name)
-    extract_dinov2_features(val_df, image_path, val_features_file, dinov2_model_name)
-    extract_metadata_features(train_df, train_metadata_file)
-    extract_metadata_features(val_df, val_metadata_file)
-    print("=== Feature Extraction Complete ===")
-
-    # Branch based on classifier type
-    if classifier_type == 'xgboost':
-        # Train XGBoost classifier with combined features
-        train_xgboost_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir)
-        return
-    elif classifier_type == 'transformer':
-        # Train Transformer classifier with combined features
-        num_classes = len(train_df['taxonID_index'].unique())
-        train_transformer_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes)
-        return
-    
-    # Continue with linear classifier training
     # Initialize DataLoaders with combined features (DINOv2 + metadata)
     train_dataset = FungiCombinedFeatureDataset(train_features_file, train_metadata_file)
     valid_dataset = FungiCombinedFeatureDataset(val_features_file, val_metadata_file)
@@ -819,9 +772,9 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
 
     # Network Setup
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Using device: {device}")
     
     # Create Linear classifier model with combined feature dimension
-    num_classes = len(train_df['taxonID_index'].unique())
     feature_dim = train_dataset.total_feature_dim  # Use combined feature dimension
     model = LinearClassifier(feature_dim, num_classes)
     model.to(device)
@@ -837,9 +790,13 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
     best_loss = np.inf
     best_accuracy = 0.0
 
+    # Initialize CSV logger
+    csv_file_path = os.path.join(checkpoint_dir, 'linear_train.csv')
+    initialize_csv_logger(csv_file_path)
+
     # Training Loop
     max_epochs = 100
-    epoch_pbar = tqdm.tqdm(range(max_epochs), desc="Training Progress")
+    epoch_pbar = tqdm.tqdm(range(max_epochs), desc="Linear Training Progress")
     
     for epoch in epoch_pbar:
         model.train()
@@ -927,12 +884,12 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
         if val_accuracy > best_accuracy:
             best_accuracy = val_accuracy
             torch.save(model.state_dict(), os.path.join(checkpoint_dir, "best_accuracy.pth"))
-            print(f"Epoch {epoch + 1}: Best accuracy updated to {best_accuracy:.4f}")
+            print(f"Epoch {epoch + 1}: Best linear accuracy updated to {best_accuracy:.4f}")
         
         if avg_val_loss < best_loss:
             best_loss = avg_val_loss
             torch.save(model.state_dict(), os.path.join(checkpoint_dir, "best_loss.pth"))
-            print(f"Epoch {epoch + 1}: Best loss updated to {best_loss:.4f}")
+            print(f"Epoch {epoch + 1}: Best linear loss updated to {best_loss:.4f}")
             patience_counter = 0  # Reset patience counter
         else:
             patience_counter += 1
@@ -948,6 +905,97 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
     
     # Close the epoch progress bar
     epoch_pbar.close()
+    print("=== Linear Training Complete ===")
+
+def evaluate_linear_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes):
+    """Evaluate Linear classifier on test set with combined features."""
+    print("=== Evaluating Linear Classifier on Test Set with Combined Features ===")
+    
+    # Use combined features (DINOv2 + metadata) for evaluation
+    test_dataset = FungiCombinedFeatureDataset(test_features_file, test_metadata_file)
+    test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    # Create and load the Linear classifier model with combined feature dimension
+    feature_dim = test_dataset.total_feature_dim  # Use combined feature dimension
+    model = LinearClassifier(feature_dim, num_classes)
+    
+    # Load the best model
+    best_trained_model = os.path.join(checkpoint_dir, "best_accuracy.pth")
+    model.load_state_dict(torch.load(best_trained_model))
+    model.to(device)
+
+    # Collect Predictions
+    results = []
+    model.eval()
+    with torch.no_grad():
+        for features, labels, filenames in tqdm.tqdm(test_loader, desc="Evaluating Linear"):
+            features = features.to(device)
+            outputs = model(features).argmax(1).cpu().numpy()
+            results.extend(zip(filenames, outputs))  # Store filenames and predictions only
+
+    # Save Results to CSV
+    output_csv_path = os.path.join(checkpoint_dir, "test_predictions.csv")
+    with open(output_csv_path, mode="w", newline="") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow([session_name])  # Write session name as the first line
+        writer.writerows(results)  # Write filenames and predictions
+    
+    print(f"Linear results saved to {output_csv_path}")
+
+def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name='dinov2_vitg14', classifier_type='linear'):
+    """
+    Train the DINOv2 + classifier and save the best models based on validation accuracy and loss.
+    Supports linear, XGBoost, and Transformer classifiers with combined features.
+    """
+    # Ensure checkpoint directory exists
+    ensure_folder(checkpoint_dir)
+
+    # Load metadata
+    df = load_and_preprocess_metadata(data_file)
+    train_df = df[df['filename_index'].str.startswith('fungi_train')]
+    train_df, val_df = train_test_split(train_df, test_size=0.2, random_state=42)
+    print('Training size', len(train_df))
+    print('Validation size', len(val_df))
+
+    # Feature extraction step - extract and save DINOv2 features
+    features_dir = os.path.join(ROOT_DIR, 'data', 'features', dinov2_model_name)
+    ensure_folder(features_dir)
+    
+    train_features_file = os.path.join(features_dir, 'train_features.h5')
+    val_features_file = os.path.join(features_dir, 'val_features.h5')
+
+    metadata_dir = os.path.join(ROOT_DIR, 'data', 'metadata')
+    ensure_folder(metadata_dir)
+
+    train_metadata_file = os.path.join(metadata_dir, 'train_metadata.h5')
+    val_metadata_file = os.path.join(metadata_dir, 'val_metadata.h5')
+
+    print("=== Feature Extraction Phase ===")
+    extract_dinov2_features(train_df, image_path, train_features_file, dinov2_model_name)
+    extract_dinov2_features(val_df, image_path, val_features_file, dinov2_model_name)
+    extract_metadata_features(train_df, train_metadata_file)
+    extract_metadata_features(val_df, val_metadata_file)
+    print("=== Feature Extraction Complete ===")
+
+    # Branch based on classifier type
+    if classifier_type == 'xgboost':
+        # Train XGBoost classifier with combined features
+        train_xgboost_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir)
+        return
+    elif classifier_type == 'transformer':
+        # Train Transformer classifier with combined features
+        num_classes = len(train_df['taxonID_index'].unique())
+        train_transformer_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes)
+        return
+    elif classifier_type == 'linear':
+        # Train Linear classifier with combined features
+        num_classes = len(train_df['taxonID_index'].unique())
+        train_linear_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes)
+        return
+    else:
+        raise ValueError(f"Unknown classifier type: {classifier_type}")
 
 def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_name, dinov2_model_name='dinov2_vitg14', classifier_type='linear'):
     """
@@ -956,10 +1004,6 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
     """
     # Ensure checkpoint directory exists
     ensure_folder(checkpoint_dir)
-
-    # Model and Test Setup
-    best_trained_model = os.path.join(checkpoint_dir, "best_accuracy.pth")
-    output_csv_path = os.path.join(checkpoint_dir, "test_predictions.csv")
 
     df = load_and_preprocess_metadata(data_file)
     test_df = df[df['filename_index'].str.startswith('fungi_test')]
@@ -987,35 +1031,12 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
         # Evaluate Transformer classifier with combined features
         evaluate_transformer_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes=183)
         return
-    
-    # Continue with linear classifier evaluation
-    # Use combined features (DINOv2 + metadata) for evaluation
-    test_dataset = FungiCombinedFeatureDataset(test_features_file, test_metadata_file)
-    test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    
-    # Create and load the Linear classifier model with combined feature dimension
-    feature_dim = test_dataset.total_feature_dim  # Use combined feature dimension
-    model = LinearClassifier(feature_dim, num_classes=183)
-    model.load_state_dict(torch.load(best_trained_model))
-    model.to(device)
-
-    # Collect Predictions
-    results = []
-    model.eval()
-    with torch.no_grad():
-        for features, labels, filenames in tqdm.tqdm(test_loader, desc="Evaluating"):
-            features = features.to(device)
-            outputs = model(features).argmax(1).cpu().numpy()
-            results.extend(zip(filenames, outputs))  # Store filenames and predictions only
-
-    # Save Results to CSV
-    with open(output_csv_path, mode="w", newline="") as csv_file:
-        writer = csv.writer(csv_file)
-        writer.writerow([session_name])  # Write session name as the first line
-        writer.writerows(results)  # Write filenames and predictions
-    print(f"Results saved to {output_csv_path}")
+    elif classifier_type == 'linear':
+        # Evaluate Linear classifier with combined features
+        evaluate_linear_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes=183)
+        return
+    else:
+        raise ValueError(f"Unknown classifier type: {classifier_type}")
 
 if __name__ == "__main__":
     # Parse command line arguments
