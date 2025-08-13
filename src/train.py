@@ -6,26 +6,20 @@ import torch
 import torch.nn as nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader, Dataset
-from albumentations import Compose, Normalize, Resize
-from albumentations import RandomResizedCrop, HorizontalFlip, VerticalFlip, RandomBrightnessContrast
-from albumentations.pytorch import ToTensorV2
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-from logging import getLogger, DEBUG, FileHandler, Formatter, StreamHandler
 import tqdm
 import numpy as np
 from PIL import Image
 import time
 import csv
-from collections import Counter
 import h5py
 from torchvision import transforms
 import argparse
 import xgboost as xgb
 import joblib
-from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 
@@ -229,59 +223,6 @@ def extract_dinov2_features(df, image_path, features_file, dinov2_model_name='di
     del dinov2_model
     torch.cuda.empty_cache() if torch.cuda.is_available() else None
 
-def get_transforms(data):
-    """
-    Return augmentation transforms for the specified mode ('train' or 'valid').
-    """
-    width, height = 224, 224
-    if data == 'train':
-        return Compose([
-            RandomResizedCrop(width, height, scale=(0.8, 1.0)),
-            HorizontalFlip(p=0.5),
-            VerticalFlip(p=0.5),
-            RandomBrightnessContrast(p=0.2),
-            Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-            ToTensorV2(),
-        ])
-    elif data == 'valid':
-        return Compose([
-            Resize(width, height),
-            Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-            ToTensorV2(),
-        ])
-    else:
-        raise ValueError("Unknown data mode requested (only 'train' or 'valid' allowed).")
-
-class FungiDataset(Dataset):
-    def __init__(self, df, path, transform=None):
-        self.df = df
-        self.transform = transform
-        self.path = path
-
-    def __len__(self):
-        return len(self.df)
-
-    def __getitem__(self, idx):
-        file_path = self.df['filename_index'].values[idx]
-        # Get label if it exists; otherwise return None
-        label = self.df['taxonID_index'].values[idx]  # Get label
-        if pd.isnull(label):
-            label = -1  # Handle missing labels for the test dataset
-        else:
-            label = int(label)
-
-        with Image.open(os.path.join(self.path, file_path)) as img:
-            # Convert to RGB mode (handles grayscale images as well)
-            image = img.convert('RGB')
-        image = np.array(image)
-
-        # Apply transformations if available
-        if self.transform:
-            augmented = self.transform(image=image)
-            image = augmented['image']
-
-        return image, label, file_path
-
 class FungiFeatureDataset(Dataset):
     """
     Dataset that loads pre-computed DINOv2 features from HDF5 file.
@@ -353,46 +294,6 @@ class FungiCombinedFeatureDataset(Dataset):
         combined_features = torch.cat([dinov2_features, metadata_features], dim=0)
         
         return combined_features, label, filename
-
-class DinoV2Linear(nn.Module):
-    """
-    DINOv2-based model with a trainable linear classifier.
-    Uses pre-trained DINOv2 model to extract features and passes them to a linear layer.
-    """
-    def __init__(self, num_classes=183, dinov2_model_name='dinov2_vits14'):
-        super(DinoV2Linear, self).__init__()
-        
-        # Load pre-trained DINOv2 model
-        self.dinov2 = torch.hub.load('facebookresearch/dinov2', dinov2_model_name)
-        
-        # Freeze DINOv2 parameters
-        for param in self.dinov2.parameters():
-            param.requires_grad = False
-        
-        # Get the feature dimension from DINOv2 model
-        # For DINOv2 models, the feature dimensions are:
-        if 'vits14' in dinov2_model_name:
-            feature_dim = 384
-        elif 'vitb14' in dinov2_model_name:
-            feature_dim = 768
-        elif 'vitl14' in dinov2_model_name:
-            feature_dim = 1024
-        elif 'vitg14' in dinov2_model_name:
-            feature_dim = 1536
-        else:
-            feature_dim = 384  # Default fallback
-        
-        # Define the linear classifier
-        self.classifier = nn.Linear(feature_dim, num_classes)
-    
-    def forward(self, x):
-        # Extract features using DINOv2 (frozen)
-        with torch.no_grad():
-            features = self.dinov2(x)
-        
-        # Pass features through the trainable linear classifier
-        output = self.classifier(features)
-        return output
 
 class LinearClassifier(nn.Module):
     """
