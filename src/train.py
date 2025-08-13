@@ -243,15 +243,28 @@ class FungiFeatureDataset(Dataset):
         
         if self.use_metadata:
             # Load metadata info and verify compatibility
+            df = {}
             with h5py.File(metadata_file, 'r') as h5f:
-                self.metadata_filenames = [fname.decode() for fname in h5f['filenames'][:]]
-                # Count metadata features (excluding filenames)
-                self.metadata_feature_names = [key for key in h5f.keys() if key != 'filenames']
-                self.metadata_feature_dim = len(self.metadata_feature_names)
-            
+                for k in h5f.keys():
+                    if h5f[k].dtype == h5py.string_dtype():
+                        df[k] = [f.decode() for f in h5f[k][:]]
+                    else:
+                        df[k] = h5f[k][:]
+
+            df = pd.DataFrame(df)
+
             # Verify that filenames match between both files
-            assert self.dinov2_filenames == self.metadata_filenames, "Filenames must match between DINOv2 and metadata files"
+            metadata_filenames = df['filenames'].values
+            assert (self.dinov2_filenames == metadata_filenames).all(), "Filenames must match between DINOv2 and metadata files"
             
+            df = df.drop(columns=['filenames'])
+
+            self.df_metadata = df
+
+            # Count metadata features (excluding filenames)
+            self.metadata_feature_names = [key for key in df.columns if key != 'filenames']
+            self.metadata_feature_dim = len(self.metadata_feature_names)
+
             self.total_feature_dim = self.dinov2_feature_dim + self.metadata_feature_dim
             print(f"Combined feature dimensions: DINOv2({self.dinov2_feature_dim}) + Metadata({self.metadata_feature_dim}) = {self.total_feature_dim}")
             print(f"Metadata features: {self.metadata_feature_names}")
@@ -272,9 +285,8 @@ class FungiFeatureDataset(Dataset):
         
         if self.use_metadata:
             # Load metadata features
-            with h5py.File(self.metadata_file, 'r') as h5f:
-                metadata_features = [h5f[k][idx] for k in self.metadata_feature_names]
-                metadata_features = torch.tensor(metadata_features, dtype=torch.float32)
+            metadata_features = self.df_metadata.iloc[idx].values
+            metadata_features = torch.tensor(metadata_features, dtype=torch.float32)
             
             # Concatenate features
             combined_features = torch.cat([dinov2_features, metadata_features], dim=0)
