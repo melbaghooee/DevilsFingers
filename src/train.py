@@ -487,13 +487,18 @@ def load_combined_features_and_labels(features_file, metadata_file):
     
     return combined_features, labels, filenames
 
-def train_xgboost_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir):
-    """Train XGBoost classifier on pre-computed combined features."""
-    print("=== Training XGBoost Classifier with Combined Features ===")
-    
-    # Load combined training data
-    X_train, y_train, _ = load_combined_features_and_labels(train_features_file, train_metadata_file)
-    X_val, y_val, _ = load_combined_features_and_labels(val_features_file, val_metadata_file)
+def train_xgboost_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, use_metadata=True):
+    """Train XGBoost classifier on pre-computed features."""
+    if use_metadata:
+        print("=== Training XGBoost Classifier with Combined Features ===")
+        # Load combined training data
+        X_train, y_train, _ = load_combined_features_and_labels(train_features_file, train_metadata_file)
+        X_val, y_val, _ = load_combined_features_and_labels(val_features_file, val_metadata_file)
+    else:
+        print("=== Training XGBoost Classifier with DinoV2 Features Only ===")
+        # Load DinoV2 training data
+        X_train, y_train, _ = load_features_and_labels(train_features_file)
+        X_val, y_val, _ = load_features_and_labels(val_features_file)
     
     # Remove samples with invalid labels
     valid_train_mask = y_train >= 0
@@ -506,6 +511,10 @@ def train_xgboost_classifier(train_features_file, val_features_file, train_metad
     
     print(f"Training samples: {len(X_train)}")
     print(f"Validation samples: {len(X_val)}")
+    if use_metadata:
+        print(f"Combined feature dimension: {X_train.shape[1]}")
+    else:
+        print(f"DinoV2 feature dimension: {X_train.shape[1]}")
     
     # Create XGBoost classifier
     xgb_model = xgb.XGBClassifier(
@@ -539,16 +548,20 @@ def train_xgboost_classifier(train_features_file, val_features_file, train_metad
     
     return xgb_model
 
-def evaluate_xgboost_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name):
-    """Evaluate XGBoost classifier on test set with combined features."""
-    print("=== Evaluating XGBoost on Test Set with Combined Features ===")
+def evaluate_xgboost_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, use_metadata=True):
+    """Evaluate XGBoost classifier on test set."""
+    if use_metadata:
+        print("=== Evaluating XGBoost on Test Set with Combined Features ===")
+        # Load combined test data
+        X_test, _, filenames = load_combined_features_and_labels(test_features_file, test_metadata_file)
+    else:
+        print("=== Evaluating XGBoost on Test Set with DinoV2 Features Only ===")
+        # Load DinoV2 test data only
+        X_test, _, filenames = load_features_and_labels(test_features_file)
     
     # Load the trained model
     model_path = os.path.join(checkpoint_dir, "best_xgboost_model.pkl")
     xgb_model = joblib.load(model_path)
-    
-    # Load combined test data
-    X_test, _, filenames = load_combined_features_and_labels(test_features_file, test_metadata_file)
     
     # Make predictions
     test_pred = xgb_model.predict(X_test)
@@ -562,13 +575,23 @@ def evaluate_xgboost_on_test_set(test_features_file, test_metadata_file, checkpo
     
     print(f"XGBoost results saved to {output_csv_path}")
 
-def train_transformer_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes):
-    """Train Transformer classifier on pre-computed combined features."""
-    print("=== Training Transformer Classifier with Combined Features ===")
+def train_transformer_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes, use_metadata=True):
+    """Train Transformer classifier on pre-computed features."""
+    if use_metadata:
+        print("=== Training Transformer Classifier with Combined Features ===")
+        # Initialize DataLoaders with combined features
+        train_dataset = FungiCombinedFeatureDataset(train_features_file, train_metadata_file)
+        valid_dataset = FungiCombinedFeatureDataset(val_features_file, val_metadata_file)
+        feature_dim = train_dataset.total_feature_dim
+    else:
+        print("=== Training Transformer Classifier with DinoV2 Features Only ===")
+        # Initialize DataLoaders with DinoV2 features only
+        train_dataset = FungiFeatureDataset(train_features_file)
+        valid_dataset = FungiFeatureDataset(val_features_file)
+        with h5py.File(train_features_file, 'r') as h5f:
+            feature_dim = h5f['features'].shape[1]  # DinoV2 feature dimension only
+        print(f"DinoV2 feature dimension: {feature_dim}")
     
-    # Initialize DataLoaders with combined features
-    train_dataset = FungiCombinedFeatureDataset(train_features_file, train_metadata_file)
-    valid_dataset = FungiCombinedFeatureDataset(val_features_file, val_metadata_file)
     train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True, num_workers=4)
     valid_loader = DataLoader(valid_dataset, batch_size=256, shuffle=False, num_workers=4)
     
@@ -576,8 +599,7 @@ def train_transformer_classifier(train_features_file, val_features_file, train_m
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
     
-    # Create Transformer model with combined feature dimension
-    feature_dim = train_dataset.total_feature_dim
+    # Create Transformer model with appropriate feature dimension
     model = TransformerClassifier(
         feature_dim=feature_dim,
         num_classes=num_classes,
@@ -716,18 +738,25 @@ def train_transformer_classifier(train_features_file, val_features_file, train_m
     epoch_pbar.close()
     print("=== Transformer Training Complete ===")
 
-def evaluate_transformer_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes):
-    """Evaluate Transformer classifier on test set with combined features."""
-    print("=== Evaluating Transformer on Test Set with Combined Features ===")
+def evaluate_transformer_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes, use_metadata=True):
+    """Evaluate Transformer classifier on test set."""
+    if use_metadata:
+        print("=== Evaluating Transformer on Test Set with Combined Features ===")
+        # Load combined test data
+        test_dataset = FungiCombinedFeatureDataset(test_features_file, test_metadata_file)
+        feature_dim = test_dataset.total_feature_dim
+    else:
+        print("=== Evaluating Transformer on Test Set with DinoV2 Features Only ===")
+        # Load DinoV2 test data only
+        test_dataset = FungiFeatureDataset(test_features_file)
+        with h5py.File(test_features_file, 'r') as h5f:
+            feature_dim = h5f['features'].shape[1]  # DinoV2 feature dimension only
     
-    # Load combined test data
-    test_dataset = FungiCombinedFeatureDataset(test_features_file, test_metadata_file)
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    # Create and load the Transformer model with combined feature dimension
-    feature_dim = test_dataset.total_feature_dim
+    # Create and load the Transformer model with appropriate feature dimension
     model = TransformerClassifier(
         feature_dim=feature_dim,
         num_classes=num_classes,
@@ -760,13 +789,23 @@ def evaluate_transformer_on_test_set(test_features_file, test_metadata_file, che
     
     print(f"Transformer results saved to {output_csv_path}")
 
-def train_linear_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes):
-    """Train Linear classifier on pre-computed combined features."""
-    print("=== Training Linear Classifier with Combined Features ===")
+def train_linear_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes, use_metadata=True):
+    """Train Linear classifier on pre-computed features."""
+    if use_metadata:
+        print("=== Training Linear Classifier with Combined Features ===")
+        # Initialize DataLoaders with combined features (DINOv2 + metadata)
+        train_dataset = FungiCombinedFeatureDataset(train_features_file, train_metadata_file)
+        valid_dataset = FungiCombinedFeatureDataset(val_features_file, val_metadata_file)
+        feature_dim = train_dataset.total_feature_dim  # Use combined feature dimension
+    else:
+        print("=== Training Linear Classifier with DinoV2 Features Only ===")
+        # Initialize DataLoaders with DinoV2 features only
+        train_dataset = FungiFeatureDataset(train_features_file)
+        valid_dataset = FungiFeatureDataset(val_features_file)
+        with h5py.File(train_features_file, 'r') as h5f:
+            feature_dim = h5f['features'].shape[1]  # DinoV2 feature dimension only
+        print(f"DinoV2 feature dimension: {feature_dim}")
     
-    # Initialize DataLoaders with combined features (DINOv2 + metadata)
-    train_dataset = FungiCombinedFeatureDataset(train_features_file, train_metadata_file)
-    valid_dataset = FungiCombinedFeatureDataset(val_features_file, val_metadata_file)
     train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True, num_workers=4)
     valid_loader = DataLoader(valid_dataset, batch_size=256, shuffle=False, num_workers=4)
 
@@ -774,8 +813,7 @@ def train_linear_classifier(train_features_file, val_features_file, train_metada
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
     
-    # Create Linear classifier model with combined feature dimension
-    feature_dim = train_dataset.total_feature_dim  # Use combined feature dimension
+    # Create Linear classifier model with appropriate feature dimension
     model = LinearClassifier(feature_dim, num_classes)
     model.to(device)
 
@@ -907,18 +945,25 @@ def train_linear_classifier(train_features_file, val_features_file, train_metada
     epoch_pbar.close()
     print("=== Linear Training Complete ===")
 
-def evaluate_linear_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes):
-    """Evaluate Linear classifier on test set with combined features."""
-    print("=== Evaluating Linear Classifier on Test Set with Combined Features ===")
+def evaluate_linear_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes, use_metadata=True):
+    """Evaluate Linear classifier on test set."""
+    if use_metadata:
+        print("=== Evaluating Linear Classifier on Test Set with Combined Features ===")
+        # Use combined features (DINOv2 + metadata) for evaluation
+        test_dataset = FungiCombinedFeatureDataset(test_features_file, test_metadata_file)
+        feature_dim = test_dataset.total_feature_dim  # Use combined feature dimension
+    else:
+        print("=== Evaluating Linear Classifier on Test Set with DinoV2 Features Only ===")
+        # Use DinoV2 features only for evaluation
+        test_dataset = FungiFeatureDataset(test_features_file)
+        with h5py.File(test_features_file, 'r') as h5f:
+            feature_dim = h5f['features'].shape[1]  # DinoV2 feature dimension only
     
-    # Use combined features (DINOv2 + metadata) for evaluation
-    test_dataset = FungiCombinedFeatureDataset(test_features_file, test_metadata_file)
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    # Create and load the Linear classifier model with combined feature dimension
-    feature_dim = test_dataset.total_feature_dim  # Use combined feature dimension
+    # Create and load the Linear classifier model with appropriate feature dimension
     model = LinearClassifier(feature_dim, num_classes)
     
     # Load the best model
@@ -944,10 +989,13 @@ def evaluate_linear_on_test_set(test_features_file, test_metadata_file, checkpoi
     
     print(f"Linear results saved to {output_csv_path}")
 
-def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name='dinov2_vitg14', classifier_type='linear'):
+def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name='dinov2_vitg14', classifier_type='linear', use_metadata=False):
     """
     Train the DINOv2 + classifier and save the best models based on validation accuracy and loss.
-    Supports linear, XGBoost, and Transformer classifiers with combined features.
+    Supports linear, XGBoost, and Transformer classifiers with optional metadata features.
+    
+    Args:
+        use_metadata: If True, use both DinoV2 and metadata features. If False, use only DinoV2 features.
     """
     # Ensure checkpoint directory exists
     ensure_folder(checkpoint_dir)
@@ -975,29 +1023,33 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
     print("=== Feature Extraction Phase ===")
     extract_dinov2_features(train_df, image_path, train_features_file, dinov2_model_name)
     extract_dinov2_features(val_df, image_path, val_features_file, dinov2_model_name)
-    extract_metadata_features(train_df, train_metadata_file)
-    extract_metadata_features(val_df, val_metadata_file)
-    print("=== Feature Extraction Complete ===")
+    
+    if use_metadata:
+        extract_metadata_features(train_df, train_metadata_file)
+        extract_metadata_features(val_df, val_metadata_file)
+        print("=== Feature Extraction Complete (DinoV2 + Metadata) ===")
+    else:
+        print("=== Feature Extraction Complete (DinoV2 only) ===")
 
     # Branch based on classifier type
     if classifier_type == 'xgboost':
-        # Train XGBoost classifier with combined features
-        train_xgboost_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir)
+        # Train XGBoost classifier
+        train_xgboost_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, use_metadata)
         return
     elif classifier_type == 'transformer':
-        # Train Transformer classifier with combined features
+        # Train Transformer classifier
         num_classes = len(train_df['taxonID_index'].unique())
-        train_transformer_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes)
+        train_transformer_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes, use_metadata)
         return
     elif classifier_type == 'linear':
-        # Train Linear classifier with combined features
+        # Train Linear classifier
         num_classes = len(train_df['taxonID_index'].unique())
-        train_linear_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes)
+        train_linear_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes, use_metadata)
         return
     else:
         raise ValueError(f"Unknown classifier type: {classifier_type}")
 
-def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_name, dinov2_model_name='dinov2_vitg14', classifier_type='linear'):
+def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_name, dinov2_model_name='dinov2_vitg14', classifier_type='linear', use_metadata=False):
     """
     Evaluate classifier on the test set and save predictions to a CSV file.
     Supports both linear and XGBoost classifiers.
@@ -1019,21 +1071,25 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
     
     print("=== Test Feature Extraction ===")
     extract_dinov2_features(test_df, image_path, test_features_file, dinov2_model_name)
-    extract_metadata_features(test_df, test_metadata_file)
-    print("=== Test Feature Extraction Complete ===")
     
-    # Branch based on classifier type
+    if use_metadata:
+        extract_metadata_features(test_df, test_metadata_file)
+        print("=== Test Feature Extraction Complete (DinoV2 + Metadata) ===")
+    else:
+        print("=== Test Feature Extraction Complete (DinoV2 only) ===")
+    
+    # Branch based on classifier type and feature mode
     if classifier_type == 'xgboost':
-        # Evaluate XGBoost classifier with combined features
-        evaluate_xgboost_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name)
+        # Evaluate XGBoost classifier
+        evaluate_xgboost_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, use_metadata)
         return
     elif classifier_type == 'transformer':
-        # Evaluate Transformer classifier with combined features
-        evaluate_transformer_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes=183)
+        # Evaluate Transformer classifier
+        evaluate_transformer_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes=183, use_metadata=use_metadata)
         return
     elif classifier_type == 'linear':
-        # Evaluate Linear classifier with combined features
-        evaluate_linear_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes=183)
+        # Evaluate Linear classifier
+        evaluate_linear_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes=183, use_metadata=use_metadata)
         return
     else:
         raise ValueError(f"Unknown classifier type: {classifier_type}")
@@ -1053,6 +1109,8 @@ if __name__ == "__main__":
                         help='Path to fungi images directory (default: data/FungiImages)')
     parser.add_argument('--session', type=str, default=None,
                         help='Session name for experiment (default: auto-generated based on model)')
+    parser.add_argument('--use_metadata', action='store_true', default=False,
+                        help='Use metadata features in addition to DinoV2 features (default: False, DinoV2 only)')
     
     args = parser.parse_args()
     
@@ -1074,7 +1132,10 @@ if __name__ == "__main__":
     if args.session is None:
         model_size = args.dinov2_model.replace('dinov2_', '').upper()
         classifier_name = args.classifier.capitalize()
-        session = f"DinoV2{model_size}{classifier_name}_MM"
+        if args.use_metadata:
+            session = f"DinoV2{model_size}{classifier_name}_MM"
+        else:
+            session = f"DinoV2{model_size}{classifier_name}"
     else:
         session = args.session
 
@@ -1085,10 +1146,11 @@ if __name__ == "__main__":
     print(f"Starting training with DINOv2 + {args.classifier.capitalize()} classifier...")
     print(f"DINOv2 Model: {args.dinov2_model}")
     print(f"Classifier: {args.classifier}")
+    print(f"Use Metadata: {args.use_metadata}")
     print(f"Session: {session}")
     print(f"Data file: {data_file}")
     print(f"Image path: {image_path}")
     print(f"Results will be saved to: {checkpoint_dir}")
     
-    train_fungi_network(data_file, image_path, checkpoint_dir, args.dinov2_model, args.classifier)
-    evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session, args.dinov2_model, args.classifier)
+    train_fungi_network(data_file, image_path, checkpoint_dir, args.dinov2_model, args.classifier, args.use_metadata)
+    evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session, args.dinov2_model, args.classifier, args.use_metadata)
