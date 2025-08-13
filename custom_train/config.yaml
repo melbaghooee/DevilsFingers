@@ -1,0 +1,7 @@
+# Configuration file for Fungi Classification Project
+#
+# Data paths
+paths:
+  image_path: '/media/small_diskie/fungidata/FungiImages'
+  metadata_file: '/media/small_diskie/fungidata/metadata.csv'
+  results_dir: '/media/small_diskie/fungidata/checkpoints'
