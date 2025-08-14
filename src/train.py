@@ -1284,6 +1284,53 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
     else:
         raise ValueError(f"Unknown classifier type: {classifier_type}")
 
+def evaluate_network_on_final_set(data_file, image_path, checkpoint_dir, session_name, model_name='dinov2_vitg14', classifier_type='linear', use_metadata=False):
+    """
+    Evaluate classifier on the final set and save predictions to a CSV file.
+    Supports linear, XGBoost, and Transformer classifiers with both DINOv2 and AM-RADIO models.
+    """
+    # Ensure checkpoint directory exists
+    ensure_folder(checkpoint_dir)
+
+    df = pd.read_csv(data_file)
+    final_df = df[df['filename_index'].str.startswith('fungi_final')]
+    
+    # Extract features for final set
+    features_dir = os.path.join(ROOT_DIR, 'data', 'features', model_name)
+    ensure_folder(features_dir)
+    final_features_file = os.path.join(features_dir, 'final_features.h5')
+
+    metadata_dir = os.path.join(ROOT_DIR, 'data', 'metadata')
+    ensure_folder(metadata_dir)
+    final_metadata_file = os.path.join(metadata_dir, 'final_metadata.h5')
+    
+    print("=== Final Feature Extraction ===")
+    # Extract image features using the generic function
+    extract_image_features(final_df, image_path, final_features_file, model_name)
+    
+    if use_metadata:
+        extract_metadata_features(final_df, final_metadata_file)
+        print(f"=== Final Feature Extraction Complete ({model_name} + Metadata) ===")
+    else:
+        print(f"=== Final Feature Extraction Complete ({model_name} only) ===")
+
+    # Branch based on classifier type and feature mode
+    if classifier_type == 'xgboost':
+        # Evaluate XGBoost classifier
+        evaluate_xgboost_on_test_set(final_features_file, final_metadata_file, checkpoint_dir, session_name, use_metadata)
+        return
+    elif classifier_type == 'transformer':
+        # Evaluate Transformer classifier
+        evaluate_transformer_on_test_set(final_features_file, final_metadata_file, checkpoint_dir, session_name, num_classes=183, use_metadata=use_metadata)
+        return
+    elif classifier_type == 'linear':
+        # Evaluate Linear classifier
+        evaluate_linear_on_test_set(final_features_file, final_metadata_file, checkpoint_dir, session_name, num_classes=183, use_metadata=use_metadata)
+        return
+    else:
+        raise ValueError(f"Unknown classifier type: {classifier_type}")
+
+
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Train image feature extractor + classifier for fungi classification")
@@ -1351,4 +1398,12 @@ if __name__ == "__main__":
     print(f"Results will be saved to: {checkpoint_dir}")
     
     train_fungi_network(data_file, image_path, checkpoint_dir, args.model, args.classifier, args.use_metadata)
+
+    evaluate_network_on_final_set(data_file, image_path, checkpoint_dir, session, args.model, args.classifier, args.use_metadata)
+    
+    # quick hack: rename test_predictions.csv
+    output_csv_path = os.path.join(checkpoint_dir, "test_predictions.csv")
+    os.rename(output_csv_path, os.path.join(checkpoint_dir, "final_predictions.csv"))
+
     evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session, args.model, args.classifier, args.use_metadata)
+    
