@@ -456,6 +456,62 @@ class FungiFeatureDatasetPCA(Dataset):
         filename = self.filenames[idx]
         return features, label, filename
 
+class FungiFeatureDatasetSeparatePCA(Dataset):
+    """
+    Dataset that loads pre-computed features and applies separate PCA transformations to image and metadata features.
+    """
+    def __init__(self, features_file, metadata_file=None, image_pca_model=None, clip_pca_model=None):
+        self.features_file = features_file
+        self.metadata_file = metadata_file
+        self.use_metadata = metadata_file is not None
+        self.image_pca_model = image_pca_model
+        self.clip_pca_model = clip_pca_model
+        
+        # Load and preprocess all features upfront
+        if self.use_metadata:
+            image_features, clip_features, labels, filenames = load_combined_features_and_labels_separate(features_file, metadata_file)
+            
+            # Apply separate PCA transformations
+            if self.image_pca_model is not None:
+                image_features = self.image_pca_model.transform(image_features)
+                print(f"Applied image PCA transformation: {image_features.shape[1]} components")
+            
+            if self.clip_pca_model is not None:
+                clip_features = self.clip_pca_model.transform(clip_features)
+                print(f"Applied CLIP PCA transformation: {clip_features.shape[1]} components")
+            
+            # Combine PCA-transformed features
+            features = np.concatenate([image_features, clip_features], axis=1)
+            
+        else:
+            # Only image features
+            features, labels, filenames = load_features_and_labels(features_file)
+            
+            # Apply image PCA if model is provided
+            if self.image_pca_model is not None:
+                features = self.image_pca_model.transform(features)
+                print(f"Applied image PCA transformation: {features.shape[1]} components")
+        
+        # Remove invalid labels
+        valid_mask = labels >= 0
+        self.features = features[valid_mask]
+        self.labels = labels[valid_mask]
+        self.filenames = [filenames[i] for i in range(len(filenames)) if valid_mask[i]]
+        
+        self.length = len(self.features)
+        self.feature_dim = self.features.shape[1]
+        
+        print(f"Dataset loaded: {self.length} samples, {self.feature_dim} features")
+    
+    def __len__(self):
+        return self.length
+    
+    def __getitem__(self, idx):
+        features = torch.tensor(self.features[idx], dtype=torch.float32)
+        label = int(self.labels[idx])
+        filename = self.filenames[idx]
+        return features, label, filename
+
 class LinearClassifier(nn.Module):
     """
     Simple linear classifier for pre-computed features.
@@ -549,6 +605,123 @@ def load_combined_features_and_labels(features_file, metadata_file):
     
     return combined_features, labels, filenames
 
+def load_combined_features_and_labels_separate(features_file, metadata_file):
+    """Load image features and metadata features separately from HDF5 files into numpy arrays."""
+    # Load image features
+    with h5py.File(features_file, 'r') as h5f:
+        image_features = h5f['features'][:]
+        labels = h5f['labels'][:]
+        filenames = [fname.decode() for fname in h5f['filenames'][:]]
+    
+    # Load CLIP text embeddings
+    with h5py.File(metadata_file, 'r') as h5f:
+        clip_features = h5f['features'][:]  # CLIP embeddings are stored in 'features' dataset
+        metadata_filenames = [fname.decode() for fname in h5f['filenames'][:]]
+    
+    # Verify filename order matches
+    assert filenames == metadata_filenames, "Filenames must match between image and metadata files"
+    
+    print(f"Separate features: Image Features({image_features.shape[1]}) + CLIP Text Embeddings({clip_features.shape[1]})")
+    
+    return image_features, clip_features, labels, filenames
+
+def apply_separate_pca_to_features(image_train, image_val, clip_train, clip_val, 
+                                 image_test=None, clip_test=None, 
+                                 image_variance_threshold=0.95, clip_variance_threshold=0.85):
+    """
+    Apply separate PCA models to image features and metadata features.
+    
+    Args:
+        image_train, image_val: Image features for training and validation
+        clip_train, clip_val: CLIP features for training and validation
+        image_test, clip_test: Test features (optional)
+        image_variance_threshold: Variance threshold for image features PCA
+        clip_variance_threshold: Variance threshold for CLIP features PCA
+    
+    Returns:
+        Tuple of (image_train_pca, image_val_pca, image_test_pca, clip_train_pca, clip_val_pca, clip_test_pca, image_pca_model, clip_pca_model)
+    """
+    print("=== Applying separate PCA to image and metadata features ===")
+    
+    # Apply PCA to image features
+    print(f"Image features original dimension: {image_train.shape[1]}")
+    image_pca_temp = PCA()
+    image_pca_temp.fit(image_train)
+    image_cumulative_variance = np.cumsum(image_pca_temp.explained_variance_ratio_)
+    image_n_components = np.argmax(image_cumulative_variance >= image_variance_threshold) + 1
+    print(f"Using {image_n_components} components for image features to explain {image_variance_threshold:.1%} of variance")
+    
+    image_pca = PCA(n_components=image_n_components, random_state=42)
+    image_train_pca = image_pca.fit_transform(image_train)
+    image_val_pca = image_pca.transform(image_val)
+    image_test_pca = image_pca.transform(image_test) if image_test is not None else None
+    
+    image_explained_variance = np.sum(image_pca.explained_variance_ratio_)
+    print(f"Image PCA: {image_train.shape[1]} -> {image_n_components} dimensions, explained variance: {image_explained_variance:.3f}")
+    
+    # Apply PCA to CLIP features
+    print(f"CLIP features original dimension: {clip_train.shape[1]}")
+    clip_pca_temp = PCA()
+    clip_pca_temp.fit(clip_train)
+    clip_cumulative_variance = np.cumsum(clip_pca_temp.explained_variance_ratio_)
+    clip_n_components = np.argmax(clip_cumulative_variance >= clip_variance_threshold) + 1
+    print(f"Using {clip_n_components} components for CLIP features to explain {clip_variance_threshold:.1%} of variance")
+    
+    clip_pca = PCA(n_components=clip_n_components, random_state=42)
+    clip_train_pca = clip_pca.fit_transform(clip_train)
+    clip_val_pca = clip_pca.transform(clip_val)
+    clip_test_pca = clip_pca.transform(clip_test) if clip_test is not None else None
+    
+    clip_explained_variance = np.sum(clip_pca.explained_variance_ratio_)
+    print(f"CLIP PCA: {clip_train.shape[1]} -> {clip_n_components} dimensions, explained variance: {clip_explained_variance:.3f}")
+    
+    # Combine PCA-transformed features
+    combined_train = np.concatenate([image_train_pca, clip_train_pca], axis=1)
+    combined_val = np.concatenate([image_val_pca, clip_val_pca], axis=1)
+    combined_test = None
+    if image_test_pca is not None and clip_test_pca is not None:
+        combined_test = np.concatenate([image_test_pca, clip_test_pca], axis=1)
+    
+    total_components = image_n_components + clip_n_components
+    print(f"Combined PCA features: {total_components} total components ({image_n_components} image + {clip_n_components} CLIP)")
+    
+    return (combined_train, combined_val, combined_test, image_pca, clip_pca)
+
+def save_separate_pca_models(image_pca_model, clip_pca_model, checkpoint_dir):
+    """Save separate PCA models to checkpoint directory."""
+    image_pca_path = os.path.join(checkpoint_dir, "image_pca_model.pkl")
+    clip_pca_path = os.path.join(checkpoint_dir, "clip_pca_model.pkl")
+    
+    joblib.dump(image_pca_model, image_pca_path)
+    joblib.dump(clip_pca_model, clip_pca_path)
+    
+    print(f"Image PCA model saved to {image_pca_path}")
+    print(f"CLIP PCA model saved to {clip_pca_path}")
+    
+    return image_pca_path, clip_pca_path
+
+def load_separate_pca_models(checkpoint_dir):
+    """Load separate PCA models from checkpoint directory."""
+    image_pca_path = os.path.join(checkpoint_dir, "image_pca_model.pkl")
+    clip_pca_path = os.path.join(checkpoint_dir, "clip_pca_model.pkl")
+    
+    image_pca_model = None
+    clip_pca_model = None
+    
+    if os.path.exists(image_pca_path):
+        image_pca_model = joblib.load(image_pca_path)
+        print(f"Image PCA model loaded from {image_pca_path}")
+    else:
+        print(f"Image PCA model not found at {image_pca_path}")
+    
+    if os.path.exists(clip_pca_path):
+        clip_pca_model = joblib.load(clip_pca_path)
+        print(f"CLIP PCA model loaded from {clip_pca_path}")
+    else:
+        print(f"CLIP PCA model not found at {clip_pca_path}")
+    
+    return image_pca_model, clip_pca_model
+
 def apply_pca_to_features(X_train, X_val, X_test=None, n_components=None, variance_threshold=0.95):
     """
     Apply PCA to reduce dimensionality of features.
@@ -609,40 +782,60 @@ def load_pca_model(checkpoint_dir):
         return None
 
 def train_xgboost_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, use_metadata=True):
-    """Train XGBoost classifier on pre-computed features."""
+    """Train XGBoost classifier on pre-computed features with separate PCA preprocessing."""
     if use_metadata:
         print("=== Training XGBoost Classifier with Combined Features ===")
-        # Load combined training data
-        X_train, y_train, _ = load_combined_features_and_labels(train_features_file, train_metadata_file)
-        X_val, y_val, _ = load_combined_features_and_labels(val_features_file, val_metadata_file)
+        # Load image and metadata features separately
+        image_train, clip_train, y_train, _ = load_combined_features_and_labels_separate(train_features_file, train_metadata_file)
+        image_val, clip_val, y_val, _ = load_combined_features_and_labels_separate(val_features_file, val_metadata_file)
     else:
-        print("=== Training XGBoost Classifier with DinoV2 Features Only ===")
-        # Load DinoV2 training data
-        X_train, y_train, _ = load_features_and_labels(train_features_file)
-        X_val, y_val, _ = load_features_and_labels(val_features_file)
+        print("=== Training XGBoost Classifier with Image Features Only ===")
+        # Load image training data
+        image_train, y_train, _ = load_features_and_labels(train_features_file)
+        image_val, y_val, _ = load_features_and_labels(val_features_file)
+        clip_train = clip_val = None
     
     # Remove samples with invalid labels
     valid_train_mask = y_train >= 0
     valid_val_mask = y_val >= 0
     
-    X_train = X_train[valid_train_mask]
+    image_train = image_train[valid_train_mask]
+    image_val = image_val[valid_val_mask]
     y_train = y_train[valid_train_mask]
-    X_val = X_val[valid_val_mask]
     y_val = y_val[valid_val_mask]
     
-    print(f"Training samples: {len(X_train)}")
-    print(f"Validation samples: {len(X_val)}")
     if use_metadata:
-        print(f"Combined feature dimension: {X_train.shape[1]}")
+        clip_train = clip_train[valid_train_mask]
+        clip_val = clip_val[valid_val_mask]
+    
+    print(f"Training samples: {len(image_train)}")
+    print(f"Validation samples: {len(image_val)}")
+    
+    if use_metadata:
+        print(f"Image feature dimension: {image_train.shape[1]}")
+        print(f"CLIP feature dimension: {clip_train.shape[1]}")
+        
+        # Apply separate PCA preprocessing
+        print("=== Applying separate PCA preprocessing ===")
+        X_train_pca, X_val_pca, _, image_pca, clip_pca = apply_separate_pca_to_features(
+            image_train, image_val, clip_train, clip_val,
+            image_variance_threshold=0.99, clip_variance_threshold=0.99
+        )
+        
+        # Save separate PCA models
+        save_separate_pca_models(image_pca, clip_pca, checkpoint_dir)
+        
     else:
-        print(f"Image feature dimension: {X_train.shape[1]}")
-    
-    # Apply PCA preprocessing
-    print("=== Applying PCA preprocessing ===")
-    X_train_pca, X_val_pca, _, pca_model = apply_pca_to_features(X_train, X_val, variance_threshold=0.99)
-    
-    # Save PCA model
-    save_pca_model(pca_model, checkpoint_dir)
+        print(f"Image feature dimension: {image_train.shape[1]}")
+        
+        # Apply PCA to image features only
+        print("=== Applying PCA preprocessing to image features ===")
+        X_train_pca, X_val_pca, _, image_pca = apply_pca_to_features(
+            image_train, image_val, variance_threshold=0.99
+        )
+        
+        # Save image PCA model
+        save_pca_model(image_pca, checkpoint_dir)
     
     # Create XGBoost classifier
     xgb_model = xgb.XGBClassifier(
@@ -677,24 +870,37 @@ def train_xgboost_classifier(train_features_file, val_features_file, train_metad
     return xgb_model
 
 def evaluate_xgboost_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, use_metadata=True):
-    """Evaluate XGBoost classifier on test set."""
+    """Evaluate XGBoost classifier on test set with separate PCA preprocessing."""
     if use_metadata:
         print("=== Evaluating XGBoost on Test Set with Combined Features ===")
-        # Load combined test data
-        X_test, _, filenames = load_combined_features_and_labels(test_features_file, test_metadata_file)
+        # Load image and metadata features separately
+        image_test, clip_test, _, filenames = load_combined_features_and_labels_separate(test_features_file, test_metadata_file)
+        
+        # Load separate PCA models and apply transformations
+        image_pca, clip_pca = load_separate_pca_models(checkpoint_dir)
+        if image_pca is not None and clip_pca is not None:
+            print("=== Applying separate PCA transformations to test features ===")
+            image_test_pca = image_pca.transform(image_test)
+            clip_test_pca = clip_pca.transform(clip_test)
+            X_test = np.concatenate([image_test_pca, clip_test_pca], axis=1)
+            print(f"Test features transformed: Image({image_test_pca.shape[1]}) + CLIP({clip_test_pca.shape[1]}) = {X_test.shape[1]} total components")
+        else:
+            print("Warning: Separate PCA models not found, using original features")
+            X_test = np.concatenate([image_test, clip_test], axis=1)
+        
     else:
         print("=== Evaluating XGBoost on Test Set with Image Features Only ===")
         # Load image test data only
         X_test, _, filenames = load_features_and_labels(test_features_file)
-    
-    # Load PCA model and apply transformation
-    pca_model = load_pca_model(checkpoint_dir)
-    if pca_model is not None:
-        print("=== Applying PCA transformation to test features ===")
-        X_test = pca_model.transform(X_test)
-        print(f"Test features transformed from original dimension to {X_test.shape[1]} PCA components")
-    else:
-        print("Warning: PCA model not found, using original features")
+        
+        # Load image PCA model and apply transformation
+        pca_model = load_pca_model(checkpoint_dir)
+        if pca_model is not None:
+            print("=== Applying PCA transformation to test image features ===")
+            X_test = pca_model.transform(X_test)
+            print(f"Test features transformed to {X_test.shape[1]} PCA components")
+        else:
+            print("Warning: PCA model not found, using original features")
     
     # Load the trained model
     model_path = os.path.join(checkpoint_dir, "best_xgboost_model.pkl")
@@ -713,37 +919,60 @@ def evaluate_xgboost_on_test_set(test_features_file, test_metadata_file, checkpo
     print(f"XGBoost results saved to {output_csv_path}")
 
 def train_transformer_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes, use_metadata=True):
-    """Train Transformer classifier on pre-computed features with PCA preprocessing."""
+    """Train Transformer classifier on pre-computed features with separate PCA preprocessing."""
     
-    # First, load raw features to fit PCA
+    # Load features for PCA fitting
     if use_metadata:
         print("=== Training Transformer Classifier with Combined Features ===")
-        X_train, y_train, _ = load_combined_features_and_labels(train_features_file, train_metadata_file)
-        X_val, y_val, _ = load_combined_features_and_labels(val_features_file, val_metadata_file)
+        image_train, clip_train, y_train, _ = load_combined_features_and_labels_separate(train_features_file, train_metadata_file)
+        image_val, clip_val, y_val, _ = load_combined_features_and_labels_separate(val_features_file, val_metadata_file)
     else:
         print("=== Training Transformer Classifier with Image Features Only ===")
-        X_train, y_train, _ = load_features_and_labels(train_features_file)
-        X_val, y_val, _ = load_features_and_labels(val_features_file)
+        image_train, y_train, _ = load_features_and_labels(train_features_file)
+        image_val, y_val, _ = load_features_and_labels(val_features_file)
+        clip_train = clip_val = None
     
     # Remove samples with invalid labels
     valid_train_mask = y_train >= 0
     valid_val_mask = y_val >= 0
     
-    X_train = X_train[valid_train_mask]
+    image_train = image_train[valid_train_mask]
+    image_val = image_val[valid_val_mask]
     y_train = y_train[valid_train_mask]
-    X_val = X_val[valid_val_mask]
     y_val = y_val[valid_val_mask]
     
-    # Apply PCA preprocessing
-    print("=== Applying PCA preprocessing ===")
-    X_train_pca, X_val_pca, _, pca_model = apply_pca_to_features(X_train, X_val, variance_threshold=0.99)
+    if use_metadata:
+        clip_train = clip_train[valid_train_mask]
+        clip_val = clip_val[valid_val_mask]
     
-    # Save PCA model
-    save_pca_model(pca_model, checkpoint_dir)
+    # Apply separate PCA preprocessing
+    if use_metadata:
+        print("=== Applying separate PCA preprocessing ===")
+        _, _, _, image_pca, clip_pca = apply_separate_pca_to_features(
+            image_train, image_val, clip_train, clip_val,
+            image_variance_threshold=0.99, clip_variance_threshold=0.99
+        )
+        
+        # Save separate PCA models
+        save_separate_pca_models(image_pca, clip_pca, checkpoint_dir)
+        
+        # Create datasets with separate PCA-transformed features
+        train_dataset = FungiFeatureDatasetSeparatePCA(train_features_file, train_metadata_file, image_pca, clip_pca)
+        valid_dataset = FungiFeatureDatasetSeparatePCA(val_features_file, val_metadata_file, image_pca, clip_pca)
+        
+    else:
+        print("=== Applying PCA preprocessing to image features ===")
+        _, _, _, image_pca = apply_pca_to_features(
+            image_train, image_val, variance_threshold=0.99
+        )
+        
+        # Save image PCA model
+        save_pca_model(image_pca, checkpoint_dir)
+        
+        # Create datasets with image PCA-transformed features
+        train_dataset = FungiFeatureDatasetSeparatePCA(train_features_file, None, image_pca, None)
+        valid_dataset = FungiFeatureDatasetSeparatePCA(val_features_file, None, image_pca, None)
     
-    # Create datasets with PCA-transformed features
-    train_dataset = FungiFeatureDatasetPCA(train_features_file, train_metadata_file if use_metadata else None, pca_model)
-    valid_dataset = FungiFeatureDatasetPCA(val_features_file, val_metadata_file if use_metadata else None, pca_model)
     feature_dim = train_dataset.feature_dim
     
     train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True, num_workers=4)
@@ -893,19 +1122,22 @@ def train_transformer_classifier(train_features_file, val_features_file, train_m
     print("=== Transformer Training Complete ===")
 
 def evaluate_transformer_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes, use_metadata=True):
-    """Evaluate Transformer classifier on test set with PCA preprocessing."""
-    
-    # Load PCA model
-    pca_model = load_pca_model(checkpoint_dir)
-    if pca_model is None:
-        raise ValueError("PCA model not found in checkpoint directory")
+    """Evaluate Transformer classifier on test set with separate PCA preprocessing."""
     
     if use_metadata:
         print("=== Evaluating Transformer on Test Set with Combined Features ===")
-        test_dataset = FungiFeatureDatasetPCA(test_features_file, test_metadata_file, pca_model)
+        # Load separate PCA models
+        image_pca, clip_pca = load_separate_pca_models(checkpoint_dir)
+        if image_pca is None or clip_pca is None:
+            raise ValueError("Separate PCA models not found in checkpoint directory")
+        test_dataset = FungiFeatureDatasetSeparatePCA(test_features_file, test_metadata_file, image_pca, clip_pca)
     else:
         print("=== Evaluating Transformer on Test Set with Image Features Only ===")
-        test_dataset = FungiFeatureDatasetPCA(test_features_file, None, pca_model)
+        # Load image PCA model
+        image_pca = load_pca_model(checkpoint_dir)
+        if image_pca is None:
+            raise ValueError("Image PCA model not found in checkpoint directory")
+        test_dataset = FungiFeatureDatasetSeparatePCA(test_features_file, None, image_pca, None)
     
     feature_dim = test_dataset.feature_dim
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
@@ -946,37 +1178,60 @@ def evaluate_transformer_on_test_set(test_features_file, test_metadata_file, che
     print(f"Transformer results saved to {output_csv_path}")
 
 def train_linear_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes, use_metadata=True):
-    """Train Linear classifier on pre-computed features with PCA preprocessing."""
+    """Train Linear classifier on pre-computed features with separate PCA preprocessing."""
     
-    # First, load raw features to fit PCA
+    # Load features for PCA fitting
     if use_metadata:
         print("=== Training Linear Classifier with Combined Features ===")
-        X_train, y_train, _ = load_combined_features_and_labels(train_features_file, train_metadata_file)
-        X_val, y_val, _ = load_combined_features_and_labels(val_features_file, val_metadata_file)
+        image_train, clip_train, y_train, _ = load_combined_features_and_labels_separate(train_features_file, train_metadata_file)
+        image_val, clip_val, y_val, _ = load_combined_features_and_labels_separate(val_features_file, val_metadata_file)
     else:
         print("=== Training Linear Classifier with Image Features Only ===")
-        X_train, y_train, _ = load_features_and_labels(train_features_file)
-        X_val, y_val, _ = load_features_and_labels(val_features_file)
+        image_train, y_train, _ = load_features_and_labels(train_features_file)
+        image_val, y_val, _ = load_features_and_labels(val_features_file)
+        clip_train = clip_val = None
     
     # Remove samples with invalid labels
     valid_train_mask = y_train >= 0
     valid_val_mask = y_val >= 0
     
-    X_train = X_train[valid_train_mask]
+    image_train = image_train[valid_train_mask]
+    image_val = image_val[valid_val_mask]
     y_train = y_train[valid_train_mask]
-    X_val = X_val[valid_val_mask]
     y_val = y_val[valid_val_mask]
     
-    # Apply PCA preprocessing
-    print("=== Applying PCA preprocessing ===")
-    X_train_pca, X_val_pca, _, pca_model = apply_pca_to_features(X_train, X_val, variance_threshold=0.99)
+    if use_metadata:
+        clip_train = clip_train[valid_train_mask]
+        clip_val = clip_val[valid_val_mask]
     
-    # Save PCA model
-    save_pca_model(pca_model, checkpoint_dir)
+    # Apply separate PCA preprocessing
+    if use_metadata:
+        print("=== Applying separate PCA preprocessing ===")
+        _, _, _, image_pca, clip_pca = apply_separate_pca_to_features(
+            image_train, image_val, clip_train, clip_val,
+            image_variance_threshold=0.99, clip_variance_threshold=0.99
+        )
+        
+        # Save separate PCA models
+        save_separate_pca_models(image_pca, clip_pca, checkpoint_dir)
+        
+        # Create datasets with separate PCA-transformed features
+        train_dataset = FungiFeatureDatasetSeparatePCA(train_features_file, train_metadata_file, image_pca, clip_pca)
+        valid_dataset = FungiFeatureDatasetSeparatePCA(val_features_file, val_metadata_file, image_pca, clip_pca)
+        
+    else:
+        print("=== Applying PCA preprocessing to image features ===")
+        _, _, _, image_pca = apply_pca_to_features(
+            image_train, image_val, variance_threshold=0.99
+        )
+        
+        # Save image PCA model
+        save_pca_model(image_pca, checkpoint_dir)
+        
+        # Create datasets with image PCA-transformed features
+        train_dataset = FungiFeatureDatasetSeparatePCA(train_features_file, None, image_pca, None)
+        valid_dataset = FungiFeatureDatasetSeparatePCA(val_features_file, None, image_pca, None)
     
-    # Create datasets with PCA-transformed features
-    train_dataset = FungiFeatureDatasetPCA(train_features_file, train_metadata_file if use_metadata else None, pca_model)
-    valid_dataset = FungiFeatureDatasetPCA(val_features_file, val_metadata_file if use_metadata else None, pca_model)
     feature_dim = train_dataset.feature_dim
     
     train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True, num_workers=4)
@@ -1119,19 +1374,22 @@ def train_linear_classifier(train_features_file, val_features_file, train_metada
     print("=== Linear Training Complete ===")
 
 def evaluate_linear_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes, use_metadata=True):
-    """Evaluate Linear classifier on test set with PCA preprocessing."""
-    
-    # Load PCA model
-    pca_model = load_pca_model(checkpoint_dir)
-    if pca_model is None:
-        raise ValueError("PCA model not found in checkpoint directory")
+    """Evaluate Linear classifier on test set with separate PCA preprocessing."""
     
     if use_metadata:
         print("=== Evaluating Linear Classifier on Test Set with Combined Features ===")
-        test_dataset = FungiFeatureDatasetPCA(test_features_file, test_metadata_file, pca_model)
+        # Load separate PCA models
+        image_pca, clip_pca = load_separate_pca_models(checkpoint_dir)
+        if image_pca is None or clip_pca is None:
+            raise ValueError("Separate PCA models not found in checkpoint directory")
+        test_dataset = FungiFeatureDatasetSeparatePCA(test_features_file, test_metadata_file, image_pca, clip_pca)
     else:
         print("=== Evaluating Linear Classifier on Test Set with Image Features Only ===")
-        test_dataset = FungiFeatureDatasetPCA(test_features_file, None, pca_model)
+        # Load image PCA model
+        image_pca = load_pca_model(checkpoint_dir)
+        if image_pca is None:
+            raise ValueError("Image PCA model not found in checkpoint directory")
+        test_dataset = FungiFeatureDatasetSeparatePCA(test_features_file, None, image_pca, None)
     
     feature_dim = test_dataset.feature_dim
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
