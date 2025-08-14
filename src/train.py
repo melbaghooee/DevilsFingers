@@ -19,9 +19,6 @@ from torchvision import transforms
 import argparse
 import xgboost as xgb
 import joblib
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
 from sklearn.decomposition import PCA
 from seesaw_loss import SeesawLoss
 import clip
@@ -89,78 +86,6 @@ def get_feature_dim(model_name):
     else:
         raise ValueError(f"Unknown model type: {model_name}")
     
-
-def load_and_preprocess_metadata(data_file):
-    """
-    Load and preprocess metadata using sklearn preprocessing utilities.
-    """
-    
-    df = pd.read_csv(data_file)
-    
-    # Define column types
-    categorical_columns = ["Habitat", "Substrate"]
-    numeric_columns = ["Latitude", "Longitude"]
-    date_column = "eventDate"
-    
-    # Create a copy for processing
-    df_processed = df.copy()
-    
-    # Handle date column
-    df_processed[date_column] = pd.to_datetime(df_processed[date_column], errors="coerce")
-    df_processed["eventYear"] = df_processed[date_column].dt.year
-    df_processed["eventMonth"] = df_processed[date_column].dt.month
-    df_processed["eventDay"] = df_processed[date_column].dt.day
-    
-    # Add derived date features to numeric columns
-    date_features = ["eventYear", "eventMonth", "eventDay"]
-    all_numeric_columns = numeric_columns + date_features
-    
-    # Create preprocessing pipeline
-    preprocessor = ColumnTransformer(
-        transformers=[
-            # Categorical features: impute missing values and one-hot encode
-            ('cat', OneHotEncoder(sparse_output=False, handle_unknown='ignore'), categorical_columns),
-            # Numeric features: impute missing values and standardize
-            ('num', StandardScaler(), all_numeric_columns)
-        ],
-        remainder='passthrough'  # Keep other columns as-is
-    )
-    
-    # Fit and transform the features
-    feature_columns = categorical_columns + all_numeric_columns
-    X = df_processed[feature_columns]
-    
-    # Handle missing values before preprocessing
-    categorical_imputer = SimpleImputer(strategy='constant', fill_value='Unknown', missing_values=pd.NA)
-    numeric_imputer = SimpleImputer(strategy='mean')
-    
-    # Apply imputation
-    X[categorical_columns] = categorical_imputer.fit_transform(X[categorical_columns])
-    X[all_numeric_columns] = numeric_imputer.fit_transform(X[all_numeric_columns])
-    
-    # Apply preprocessing
-    X_processed = preprocessor.fit_transform(X)
-    
-    # Create feature names for the processed data
-    cat_feature_names = preprocessor.named_transformers_['cat'].get_feature_names_out(categorical_columns)
-    num_feature_names = all_numeric_columns
-    feature_names = list(cat_feature_names) + num_feature_names
-    
-    # Create processed DataFrame
-    df_features = pd.DataFrame(X_processed, columns=feature_names, index=df.index)
-
-    # Exclude Unknowns
-    cols = [c for c in df_features.columns if 'Unknown' not in c]
-    df_features = df_features[cols]
-    
-    # Add back essential columns
-    df_final = pd.concat([
-        df[['filename_index', 'taxonID_index']],  # Keep original identifiers
-        df_features
-    ], axis=1)
-
-    return df_final
-
 def extract_metadata_features(df, metadata_file):
     """
     Create sentences from metadata features, encode them with CLIP text encoder, and save to HDF5 file.
@@ -267,18 +192,6 @@ def extract_metadata_features(df, metadata_file):
     del clip_model
     torch.cuda.empty_cache() if torch.cuda.is_available() else None
 
-def extract_dinov2_features(df, image_path, features_file, dinov2_model_name='dinov2_vitg14'):
-    """
-    Extract DINOv2 features for all images and save them to HDF5 file.
-    """
-    return extract_image_features(df, image_path, features_file, dinov2_model_name)
-
-def extract_radio_features(df, image_path, features_file, radio_model_name='radio_v1'):
-    """
-    Extract AM-RADIO features for all images and save them to HDF5 file.
-    """
-    return extract_image_features(df, image_path, features_file, radio_model_name)
-
 def extract_image_features(df, image_path, features_file, model_name='dinov2_vitg14'):
     """
     Extract image features using either DINOv2 or AM-RADIO models and save them to HDF5 file.
@@ -359,102 +272,6 @@ def extract_image_features(df, image_path, features_file, model_name='dinov2_vit
     # Clean up GPU memory
     del model
     torch.cuda.empty_cache() if torch.cuda.is_available() else None
-
-class FungiFeatureDataset(Dataset):
-    """
-    Dataset that loads pre-computed image features (DINOv2 or AM-RADIO) and optionally metadata features from HDF5 files.
-    If metadata_file is provided, concatenates them into a single feature vector.
-    If metadata_file is None, returns only image features.
-    """
-    def __init__(self, features_file, metadata_file=None):
-        self.features_file = features_file
-        self.metadata_file = metadata_file
-        self.use_metadata = metadata_file is not None
-        
-        # Load basic info from features file
-        with h5py.File(features_file, 'r') as h5f:
-            self.length = h5f['features'].shape[0]
-            self.image_filenames = [fname.decode() for fname in h5f['filenames'][:]]
-            self.labels = h5f['labels'][:]
-            self.image_feature_dim = h5f['features'].shape[1]
-        
-        if self.use_metadata:
-            # Load metadata info and verify compatibility
-            with h5py.File(metadata_file, 'r') as h5f:
-                metadata_filenames = [fname.decode() for fname in h5f['filenames'][:]]
-                self.metadata_feature_dim = h5f['features'].shape[1]  # CLIP embedding dimension (512)
-                
-            # Verify that filenames match between both files
-            assert self.image_filenames == metadata_filenames, "Filenames must match between image and metadata files"
-
-            self.total_feature_dim = self.image_feature_dim + self.metadata_feature_dim
-            print(f"Combined feature dimensions: Image Features({self.image_feature_dim}) + CLIP Text Embeddings({self.metadata_feature_dim}) = {self.total_feature_dim}")
-        else:
-            # Only using image features
-            self.total_feature_dim = self.image_feature_dim
-            print(f"Using image features only: dimension = {self.image_feature_dim}")
-    
-    def __len__(self):
-        return self.length
-    
-    def __getitem__(self, idx):
-        # Load image features
-        with h5py.File(self.features_file, 'r') as h5f:
-            image_features = torch.tensor(h5f['features'][idx], dtype=torch.float32)
-            label = int(self.labels[idx])
-            filename = self.image_filenames[idx]
-        
-        if self.use_metadata:
-            # Load CLIP text embeddings from metadata file
-            with h5py.File(self.metadata_file, 'r') as h5f:
-                metadata_features = torch.tensor(h5f['features'][idx], dtype=torch.float32)
-            
-            # Concatenate features
-            combined_features = torch.cat([image_features, metadata_features], dim=0)
-            return combined_features, label, filename
-        else:
-            # Return only image features
-            return image_features, label, filename
-
-class FungiFeatureDatasetPCA(Dataset):
-    """
-    Dataset that loads pre-computed features and applies PCA transformation.
-    Used for neural network training with PCA-preprocessed features.
-    """
-    def __init__(self, features_file, metadata_file=None, pca_model=None):
-        self.features_file = features_file
-        self.metadata_file = metadata_file
-        self.use_metadata = metadata_file is not None
-        self.pca_model = pca_model
-        
-        # Load and preprocess all features upfront
-        if self.use_metadata:
-            features, labels, filenames = load_combined_features_and_labels(features_file, metadata_file)
-        else:
-            features, labels, filenames = load_features_and_labels(features_file)
-        
-        # Apply PCA if model is provided
-        if self.pca_model is not None:
-            features = self.pca_model.transform(features)
-            print(f"Applied PCA transformation: {features.shape[1]} components")
-        
-        self.features = features
-        self.labels = labels
-        self.filenames = filenames
-
-        self.length = len(self.features)
-        self.feature_dim = self.features.shape[1]
-        
-        print(f"Dataset loaded: {self.length} samples, {self.feature_dim} features")
-    
-    def __len__(self):
-        return self.length
-    
-    def __getitem__(self, idx):
-        features = torch.tensor(self.features[idx], dtype=torch.float32)
-        label = int(self.labels[idx])
-        filename = self.filenames[idx]
-        return features, label, filename
 
 class FungiFeatureDatasetSeparatePCA(Dataset):
     """
@@ -579,29 +396,6 @@ def load_features_and_labels(features_file):
         labels = h5f['labels'][:]
         filenames = [fname.decode() for fname in h5f['filenames'][:]]
     return features, labels, filenames
-
-def load_combined_features_and_labels(features_file, metadata_file):
-    """Load combined image features (DINOv2/AM-RADIO) and CLIP text embedding features from HDF5 files into numpy arrays."""
-    # Load image features
-    with h5py.File(features_file, 'r') as h5f:
-        image_features = h5f['features'][:]
-        labels = h5f['labels'][:]
-        filenames = [fname.decode() for fname in h5f['filenames'][:]]
-    
-    # Load CLIP text embeddings
-    with h5py.File(metadata_file, 'r') as h5f:
-        clip_features = h5f['features'][:]  # CLIP embeddings are stored in 'features' dataset
-        metadata_filenames = [fname.decode() for fname in h5f['filenames'][:]]
-    
-    # Verify filename order matches
-    assert filenames == metadata_filenames, "Filenames must match between image and metadata files"
-    
-    # Combine features
-    combined_features = np.concatenate([image_features, clip_features], axis=1)
-    
-    print(f"Combined features shape: Image Features({image_features.shape[1]}) + CLIP Text Embeddings({clip_features.shape[1]}) = {combined_features.shape[1]}")
-    
-    return combined_features, labels, filenames
 
 def load_combined_features_and_labels_separate(features_file, metadata_file):
     """Load image features and metadata features separately from HDF5 files into numpy arrays."""
@@ -1395,7 +1189,7 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, model_name='dinov
     ensure_folder(checkpoint_dir)
 
     # Load metadata
-    df = load_and_preprocess_metadata(data_file)
+    df = pd.read_csv(data_file)
     train_df = df[df['filename_index'].str.startswith('fungi_train')]
     train_df, val_df = train_test_split(train_df, test_size=0.2, random_state=42)
     print('Training size', len(train_df))
@@ -1415,15 +1209,9 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, model_name='dinov
     val_metadata_file = os.path.join(metadata_dir, 'val_metadata.h5')
 
     print("=== Feature Extraction Phase ===")
-    # Use appropriate feature extraction function based on model type
-    if 'dinov2' in model_name:
-        extract_dinov2_features(train_df, image_path, train_features_file, model_name)
-        extract_dinov2_features(val_df, image_path, val_features_file, model_name)
-    elif 'radio' in model_name:
-        extract_radio_features(train_df, image_path, train_features_file, model_name)
-        extract_radio_features(val_df, image_path, val_features_file, model_name)
-    else:
-        raise ValueError(f"Unknown model type: {model_name}")
+    # Extract image features using the generic function
+    extract_image_features(train_df, image_path, train_features_file, model_name)
+    extract_image_features(val_df, image_path, val_features_file, model_name)
     
     if use_metadata:
         extract_metadata_features(train_df, train_metadata_file)
@@ -1458,7 +1246,7 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
     # Ensure checkpoint directory exists
     ensure_folder(checkpoint_dir)
 
-    df = load_and_preprocess_metadata(data_file)
+    df = pd.read_csv(data_file)
     test_df = df[df['filename_index'].str.startswith('fungi_test')]
     
     # Extract features for test set
@@ -1471,13 +1259,8 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
     test_metadata_file = os.path.join(metadata_dir, 'test_metadata.h5')
     
     print("=== Test Feature Extraction ===")
-    # Use appropriate feature extraction function based on model type
-    if 'dinov2' in model_name:
-        extract_dinov2_features(test_df, image_path, test_features_file, model_name)
-    elif 'radio' in model_name:
-        extract_radio_features(test_df, image_path, test_features_file, model_name)
-    else:
-        raise ValueError(f"Unknown model type: {model_name}")
+    # Extract image features using the generic function
+    extract_image_features(test_df, image_path, test_features_file, model_name)
     
     if use_metadata:
         extract_metadata_features(test_df, test_metadata_file)
