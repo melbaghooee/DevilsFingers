@@ -22,6 +22,7 @@ import joblib
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
+from seesaw_loss import SeesawLoss
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
@@ -188,7 +189,8 @@ def extract_dinov2_features(df, image_path, features_file, dinov2_model_name='di
     
     # Preprocessing for DINOv2
     preprocess = transforms.Compose([
-        transforms.Resize((224, 224)),
+        # transforms.Resize((224, 224)),
+        transforms.Resize((448, 448)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
@@ -513,7 +515,7 @@ def train_transformer_classifier(train_features_file, val_features_file, train_m
     # Define Optimization, Scheduler, and Criterion
     optimizer = Adam(model.parameters(), lr=0.0001, weight_decay=1e-4)
     scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=3, verbose=True, eps=1e-8)
-    criterion = nn.CrossEntropyLoss()
+    criterion = SeesawLoss(num_classes=num_classes, p=0.8, q=2.0).to(device) # nn.CrossEntropyLoss()
     
     # Training setup
     patience = 15
@@ -718,7 +720,7 @@ def train_linear_classifier(train_features_file, val_features_file, train_metada
     # Define Optimization, Scheduler, and Criterion
     optimizer = Adam(model.parameters(), lr=0.001)
     scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.9, patience=1, verbose=True, eps=1e-6)
-    criterion = nn.CrossEntropyLoss()
+    criterion = SeesawLoss(num_classes=num_classes, p=0.8, q=2.0).to(device) # nn.CrossEntropyLoss()
 
     # Early stopping setup
     patience = 10
