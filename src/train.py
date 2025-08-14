@@ -23,6 +23,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from seesaw_loss import SeesawLoss
+import clip
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
@@ -145,24 +146,109 @@ def load_and_preprocess_metadata(data_file):
 
 def extract_metadata_features(df, metadata_file):
     """
-    Pre-process metadata features from the DataFrame and save to a HDF5 file.
+    Create sentences from metadata features, encode them with CLIP text encoder, and save to HDF5 file.
     """
     # check if metadata_file already exist
     if os.path.exists(metadata_file):
         print(f"Metadata features file {metadata_file} already exists. Skipping extraction.")
         return
 
-    # save processed DataFrame to HDF5
-    with h5py.File(metadata_file, "w") as h5f:
-        h5f.create_dataset('filenames', data=df['filename_index'].values, dtype=h5py.string_dtype())
-
+    print(f"Extracting CLIP text embeddings for metadata features to {metadata_file}...")
+    
+    # Load CLIP model
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    clip_model, preprocess = clip.load("ViT-B/32", device=device)
+    clip_model.eval()
+    
+    # Freeze all parameters
+    for param in clip_model.parameters():
+        param.requires_grad = False
+    
+    # Get the text embedding dimension (512 for ViT-B/32)
+    text_embedding_dim = 512
+    
+    filenames = df['filename_index'].values
+    num_samples = len(filenames)
+    
+    # Create sentences from metadata
+    sentences = []
+    for _, row in df.iterrows():
+        # Create a descriptive sentence from available metadata columns
+        sentence_parts = []
+        
+        # Add categorical information if available
         for col in df.columns:
             if col in ['filename_index', 'taxonID_index']:
                 continue
             
-            h5f.create_dataset(col.replace('/', '_'), data=df[col].values.astype(np.float32), dtype='float32')
+            value = row[col]
+            if pd.isnull(value) or value == 0:
+                continue
+                
+            # Handle different types of features
+            if 'Habitat_' in col and value > 0:
+                habitat_type = col.replace('Habitat_', '')
+                sentence_parts.append(f"found in {habitat_type} habitat")
+            elif 'Substrate_' in col and value > 0:
+                substrate_type = col.replace('Substrate_', '')
+                sentence_parts.append(f"growing on {substrate_type} substrate")
+            elif col == 'Latitude':
+                sentence_parts.append(f"latitude {value:.2f}")
+            elif col == 'Longitude':
+                sentence_parts.append(f"longitude {value:.2f}")
+            elif col == 'eventYear':
+                sentence_parts.append(f"observed in year {int(value)}")
+            elif col == 'eventMonth':
+                month_names = ['', 'January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December']
+                if 1 <= int(value) <= 12:
+                    sentence_parts.append(f"observed in {month_names[int(value)]}")
+            elif col == 'eventDay':
+                sentence_parts.append(f"observed on day {int(value)}")
+        
+        # Create final sentence
+        if sentence_parts:
+            sentence = f"A fungi specimen {', '.join(sentence_parts)}."
+        else:
+            sentence = "A fungi specimen with unknown characteristics."
+        
+        sentences.append(sentence)
+    
+    # Encode sentences with CLIP
+    text_embeddings = []
+    batch_size = 32  # Process in batches to avoid memory issues
+    
+    with torch.no_grad():
+        for i in tqdm.tqdm(range(0, len(sentences), batch_size), desc="Encoding text with CLIP"):
+            batch_sentences = sentences[i:i+batch_size]
+            
+            # Tokenize and encode the batch
+            text_tokens = clip.tokenize(batch_sentences, truncate=True).to(device)
+            text_features = clip_model.encode_text(text_tokens)
+            
+            # Normalize features (as recommended by CLIP)
+            text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+            
+            text_embeddings.append(text_features.cpu().numpy())
+    
+    # Concatenate all embeddings
+    text_embeddings = np.concatenate(text_embeddings, axis=0)
+    
+    # Save to HDF5 file
+    with h5py.File(metadata_file, "w") as h5f:
+        h5f.create_dataset('filenames', data=filenames, dtype=h5py.string_dtype())
+        h5f.create_dataset('features', data=text_embeddings.astype(np.float32), dtype='float32')
+        
+        # Also save the original sentences for debugging/reference
+        sentences_encoded = [s.encode('utf-8') for s in sentences]
+        h5f.create_dataset('sentences', data=sentences_encoded, dtype=h5py.string_dtype())
 
-    print(f"Metadata features saved to {metadata_file}")
+    print(f"CLIP text embeddings saved to {metadata_file}")
+    print(f"Text embedding dimension: {text_embedding_dim}, Number of samples: {num_samples}")
+    
+    # Clean up GPU memory
+    del clip_model
+    torch.cuda.empty_cache() if torch.cuda.is_available() else None
     
 def extract_dinov2_features(df, image_path, features_file, dinov2_model_name='dinov2_vitg14'):
     """
@@ -245,31 +331,15 @@ class FungiFeatureDataset(Dataset):
         
         if self.use_metadata:
             # Load metadata info and verify compatibility
-            df = {}
             with h5py.File(metadata_file, 'r') as h5f:
-                for k in h5f.keys():
-                    if h5f[k].dtype == h5py.string_dtype():
-                        df[k] = [f.decode() for f in h5f[k][:]]
-                    else:
-                        df[k] = h5f[k][:]
-
-            df = pd.DataFrame(df)
-
+                metadata_filenames = [fname.decode() for fname in h5f['filenames'][:]]
+                self.metadata_feature_dim = h5f['features'].shape[1]  # CLIP embedding dimension (512)
+                
             # Verify that filenames match between both files
-            metadata_filenames = df['filenames'].values
-            assert (self.dinov2_filenames == metadata_filenames).all(), "Filenames must match between DINOv2 and metadata files"
-            
-            df = df.drop(columns=['filenames'])
-
-            self.df_metadata = df
-
-            # Count metadata features (excluding filenames)
-            self.metadata_feature_names = [key for key in df.columns if key != 'filenames']
-            self.metadata_feature_dim = len(self.metadata_feature_names)
+            assert self.dinov2_filenames == metadata_filenames, "Filenames must match between DINOv2 and metadata files"
 
             self.total_feature_dim = self.dinov2_feature_dim + self.metadata_feature_dim
-            print(f"Combined feature dimensions: DINOv2({self.dinov2_feature_dim}) + Metadata({self.metadata_feature_dim}) = {self.total_feature_dim}")
-            print(f"Metadata features: {self.metadata_feature_names}")
+            print(f"Combined feature dimensions: DINOv2({self.dinov2_feature_dim}) + CLIP Text Embeddings({self.metadata_feature_dim}) = {self.total_feature_dim}")
         else:
             # Only using DINOv2 features
             self.total_feature_dim = self.dinov2_feature_dim
@@ -286,9 +356,9 @@ class FungiFeatureDataset(Dataset):
             filename = self.dinov2_filenames[idx]
         
         if self.use_metadata:
-            # Load metadata features
-            metadata_features = self.df_metadata.iloc[idx].values
-            metadata_features = torch.tensor(metadata_features, dtype=torch.float32)
+            # Load CLIP text embeddings from metadata file
+            with h5py.File(self.metadata_file, 'r') as h5f:
+                metadata_features = torch.tensor(h5f['features'][idx], dtype=torch.float32)
             
             # Concatenate features
             combined_features = torch.cat([dinov2_features, metadata_features], dim=0)
@@ -368,25 +438,25 @@ def load_features_and_labels(features_file):
     return features, labels, filenames
 
 def load_combined_features_and_labels(features_file, metadata_file):
-    """Load combined DINOv2 and metadata features from HDF5 files into numpy arrays."""
+    """Load combined DINOv2 and CLIP text embedding features from HDF5 files into numpy arrays."""
     # Load DINOv2 features
     with h5py.File(features_file, 'r') as h5f:
         dinov2_features = h5f['features'][:]
         labels = h5f['labels'][:]
         filenames = [fname.decode() for fname in h5f['filenames'][:]]
     
-    # Load metadata features
+    # Load CLIP text embeddings
     with h5py.File(metadata_file, 'r') as h5f:
-        metadata_feature_names = [key for key in h5f.keys() if key != 'filenames']
-        metadata_features = []
-        for feature_name in metadata_feature_names:
-            metadata_features.append(h5f[feature_name][:])
-        metadata_features = np.column_stack(metadata_features)
+        clip_features = h5f['features'][:]  # CLIP embeddings are stored in 'features' dataset
+        metadata_filenames = [fname.decode() for fname in h5f['filenames'][:]]
+    
+    # Verify filename order matches
+    assert filenames == metadata_filenames, "Filenames must match between DINOv2 and metadata files"
     
     # Combine features
-    combined_features = np.concatenate([dinov2_features, metadata_features], axis=1)
+    combined_features = np.concatenate([dinov2_features, clip_features], axis=1)
     
-    print(f"Combined features shape: DINOv2({dinov2_features.shape[1]}) + Metadata({metadata_features.shape[1]}) = {combined_features.shape[1]}")
+    print(f"Combined features shape: DINOv2({dinov2_features.shape[1]}) + CLIP Text Embeddings({clip_features.shape[1]}) = {combined_features.shape[1]}")
     
     return combined_features, labels, filenames
 
