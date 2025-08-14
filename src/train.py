@@ -438,12 +438,10 @@ class FungiFeatureDatasetPCA(Dataset):
             features = self.pca_model.transform(features)
             print(f"Applied PCA transformation: {features.shape[1]} components")
         
-        # Remove invalid labels
-        valid_mask = labels >= 0
-        self.features = features[valid_mask]
-        self.labels = labels[valid_mask]
-        self.filenames = [filenames[i] for i in range(len(filenames)) if valid_mask[i]]
-        
+        self.features = features
+        self.labels = labels
+        self.filenames = filenames
+
         self.length = len(self.features)
         self.feature_dim = self.features.shape[1]
         
