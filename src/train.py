@@ -273,7 +273,7 @@ def extract_image_features(df, image_path, features_file, model_name='dinov2_vit
     del model
     torch.cuda.empty_cache() if torch.cuda.is_available() else None
 
-class FungiFeatureDatasetSeparatePCA(Dataset):
+class FungiFeatureDataset(Dataset):
     """
     Dataset that loads pre-computed features and applies separate PCA transformations to image and metadata features.
     """
@@ -286,7 +286,7 @@ class FungiFeatureDatasetSeparatePCA(Dataset):
         
         # Load and preprocess all features upfront
         if self.use_metadata:
-            image_features, clip_features, labels, filenames = load_combined_features_and_labels_separate(features_file, metadata_file)
+            image_features, clip_features, labels, filenames = load_features_and_labels(features_file, metadata_file)
             
             # Apply separate PCA transformations
             if self.image_pca_model is not None:
@@ -397,7 +397,7 @@ def load_features_and_labels(features_file):
         filenames = [fname.decode() for fname in h5f['filenames'][:]]
     return features, labels, filenames
 
-def load_combined_features_and_labels_separate(features_file, metadata_file):
+def load_features_and_labels(features_file, metadata_file):
     """Load image features and metadata features separately from HDF5 files into numpy arrays."""
     # Load image features
     with h5py.File(features_file, 'r') as h5f:
@@ -578,8 +578,8 @@ def train_xgboost_classifier(train_features_file, val_features_file, train_metad
     if use_metadata:
         print("=== Training XGBoost Classifier with Combined Features ===")
         # Load image and metadata features separately
-        image_train, clip_train, y_train, _ = load_combined_features_and_labels_separate(train_features_file, train_metadata_file)
-        image_val, clip_val, y_val, _ = load_combined_features_and_labels_separate(val_features_file, val_metadata_file)
+        image_train, clip_train, y_train, _ = load_features_and_labels(train_features_file, train_metadata_file)
+        image_val, clip_val, y_val, _ = load_features_and_labels(val_features_file, val_metadata_file)
     else:
         print("=== Training XGBoost Classifier with Image Features Only ===")
         # Load image training data
@@ -653,7 +653,7 @@ def evaluate_xgboost_on_test_set(test_features_file, test_metadata_file, checkpo
     if use_metadata:
         print("=== Evaluating XGBoost on Test Set with Combined Features ===")
         # Load image and metadata features separately
-        image_test, clip_test, _, filenames = load_combined_features_and_labels_separate(test_features_file, test_metadata_file)
+        image_test, clip_test, _, filenames = load_features_and_labels(test_features_file, test_metadata_file)
         
         # Load separate PCA models and apply transformations
         image_pca, clip_pca = load_separate_pca_models(checkpoint_dir)
@@ -703,8 +703,8 @@ def train_transformer_classifier(train_features_file, val_features_file, train_m
     # Load features for PCA fitting
     if use_metadata:
         print("=== Training Transformer Classifier with Combined Features ===")
-        image_train, clip_train, y_train, _ = load_combined_features_and_labels_separate(train_features_file, train_metadata_file)
-        image_val, clip_val, y_val, _ = load_combined_features_and_labels_separate(val_features_file, val_metadata_file)
+        image_train, clip_train, y_train, _ = load_features_and_labels(train_features_file, train_metadata_file)
+        image_val, clip_val, y_val, _ = load_features_and_labels(val_features_file, val_metadata_file)
     else:
         print("=== Training Transformer Classifier with Image Features Only ===")
         image_train, y_train, _ = load_features_and_labels(train_features_file)
@@ -723,8 +723,8 @@ def train_transformer_classifier(train_features_file, val_features_file, train_m
         save_separate_pca_models(image_pca, clip_pca, checkpoint_dir)
         
         # Create datasets with separate PCA-transformed features
-        train_dataset = FungiFeatureDatasetSeparatePCA(train_features_file, train_metadata_file, image_pca, clip_pca)
-        valid_dataset = FungiFeatureDatasetSeparatePCA(val_features_file, val_metadata_file, image_pca, clip_pca)
+        train_dataset = FungiFeatureDataset(train_features_file, train_metadata_file, image_pca, clip_pca)
+        valid_dataset = FungiFeatureDataset(val_features_file, val_metadata_file, image_pca, clip_pca)
         
     else:
         print("=== Applying PCA preprocessing to image features ===")
@@ -736,8 +736,8 @@ def train_transformer_classifier(train_features_file, val_features_file, train_m
         save_pca_model(image_pca, checkpoint_dir)
         
         # Create datasets with image PCA-transformed features
-        train_dataset = FungiFeatureDatasetSeparatePCA(train_features_file, None, image_pca, None)
-        valid_dataset = FungiFeatureDatasetSeparatePCA(val_features_file, None, image_pca, None)
+        train_dataset = FungiFeatureDataset(train_features_file, None, image_pca, None)
+        valid_dataset = FungiFeatureDataset(val_features_file, None, image_pca, None)
     
     feature_dim = train_dataset.feature_dim
     
@@ -896,14 +896,14 @@ def evaluate_transformer_on_test_set(test_features_file, test_metadata_file, che
         image_pca, clip_pca = load_separate_pca_models(checkpoint_dir)
         if image_pca is None or clip_pca is None:
             raise ValueError("Separate PCA models not found in checkpoint directory")
-        test_dataset = FungiFeatureDatasetSeparatePCA(test_features_file, test_metadata_file, image_pca, clip_pca)
+        test_dataset = FungiFeatureDataset(test_features_file, test_metadata_file, image_pca, clip_pca)
     else:
         print("=== Evaluating Transformer on Test Set with Image Features Only ===")
         # Load image PCA model
         image_pca = load_pca_model(checkpoint_dir)
         if image_pca is None:
             raise ValueError("Image PCA model not found in checkpoint directory")
-        test_dataset = FungiFeatureDatasetSeparatePCA(test_features_file, None, image_pca, None)
+        test_dataset = FungiFeatureDataset(test_features_file, None, image_pca, None)
     
     feature_dim = test_dataset.feature_dim
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
@@ -949,8 +949,8 @@ def train_linear_classifier(train_features_file, val_features_file, train_metada
     # Load features for PCA fitting
     if use_metadata:
         print("=== Training Linear Classifier with Combined Features ===")
-        image_train, clip_train, y_train, _ = load_combined_features_and_labels_separate(train_features_file, train_metadata_file)
-        image_val, clip_val, y_val, _ = load_combined_features_and_labels_separate(val_features_file, val_metadata_file)
+        image_train, clip_train, y_train, _ = load_features_and_labels(train_features_file, train_metadata_file)
+        image_val, clip_val, y_val, _ = load_features_and_labels(val_features_file, val_metadata_file)
     else:
         print("=== Training Linear Classifier with Image Features Only ===")
         image_train, y_train, _ = load_features_and_labels(train_features_file)
@@ -969,8 +969,8 @@ def train_linear_classifier(train_features_file, val_features_file, train_metada
         save_separate_pca_models(image_pca, clip_pca, checkpoint_dir)
         
         # Create datasets with separate PCA-transformed features
-        train_dataset = FungiFeatureDatasetSeparatePCA(train_features_file, train_metadata_file, image_pca, clip_pca)
-        valid_dataset = FungiFeatureDatasetSeparatePCA(val_features_file, val_metadata_file, image_pca, clip_pca)
+        train_dataset = FungiFeatureDataset(train_features_file, train_metadata_file, image_pca, clip_pca)
+        valid_dataset = FungiFeatureDataset(val_features_file, val_metadata_file, image_pca, clip_pca)
         
     else:
         print("=== Applying PCA preprocessing to image features ===")
@@ -982,8 +982,8 @@ def train_linear_classifier(train_features_file, val_features_file, train_metada
         save_pca_model(image_pca, checkpoint_dir)
         
         # Create datasets with image PCA-transformed features
-        train_dataset = FungiFeatureDatasetSeparatePCA(train_features_file, None, image_pca, None)
-        valid_dataset = FungiFeatureDatasetSeparatePCA(val_features_file, None, image_pca, None)
+        train_dataset = FungiFeatureDataset(train_features_file, None, image_pca, None)
+        valid_dataset = FungiFeatureDataset(val_features_file, None, image_pca, None)
     
     feature_dim = train_dataset.feature_dim
     
@@ -1135,14 +1135,14 @@ def evaluate_linear_on_test_set(test_features_file, test_metadata_file, checkpoi
         image_pca, clip_pca = load_separate_pca_models(checkpoint_dir)
         if image_pca is None or clip_pca is None:
             raise ValueError("Separate PCA models not found in checkpoint directory")
-        test_dataset = FungiFeatureDatasetSeparatePCA(test_features_file, test_metadata_file, image_pca, clip_pca)
+        test_dataset = FungiFeatureDataset(test_features_file, test_metadata_file, image_pca, clip_pca)
     else:
         print("=== Evaluating Linear Classifier on Test Set with Image Features Only ===")
         # Load image PCA model
         image_pca = load_pca_model(checkpoint_dir)
         if image_pca is None:
             raise ValueError("Image PCA model not found in checkpoint directory")
-        test_dataset = FungiFeatureDatasetSeparatePCA(test_features_file, None, image_pca, None)
+        test_dataset = FungiFeatureDataset(test_features_file, None, image_pca, None)
     
     feature_dim = test_dataset.feature_dim
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
