@@ -71,6 +71,22 @@ def get_dinov2_feature_dim(model_name):
         return 1536
     else:
         raise ValueError(f"Unknown DINOv2 model: {model_name}")
+
+def get_radio_feature_dim(model_name):
+    """Get the feature dimension for a given AM-RADIO model."""
+    if 'radio_v3-g' in model_name:
+        return 4608
+    else:
+        raise ValueError(f"Unknown AM-RADIO model: {model_name}")
+
+def get_feature_dim(model_name):
+    """Get the feature dimension for any supported model (DINOv2 or AM-RADIO)."""
+    if 'dinov2' in model_name:
+        return get_dinov2_feature_dim(model_name)
+    elif 'radio' in model_name:
+        return get_radio_feature_dim(model_name)
+    else:
+        raise ValueError(f"Unknown model type: {model_name}")
     
 
 def load_and_preprocess_metadata(data_file):
@@ -249,37 +265,61 @@ def extract_metadata_features(df, metadata_file):
     # Clean up GPU memory
     del clip_model
     torch.cuda.empty_cache() if torch.cuda.is_available() else None
-    
+
 def extract_dinov2_features(df, image_path, features_file, dinov2_model_name='dinov2_vitg14'):
     """
     Extract DINOv2 features for all images and save them to HDF5 file.
+    """
+    return extract_image_features(df, image_path, features_file, dinov2_model_name)
+
+def extract_radio_features(df, image_path, features_file, radio_model_name='radio_v1'):
+    """
+    Extract AM-RADIO features for all images and save them to HDF5 file.
+    """
+    return extract_image_features(df, image_path, features_file, radio_model_name)
+
+def extract_image_features(df, image_path, features_file, model_name='dinov2_vitg14'):
+    """
+    Extract image features using either DINOv2 or AM-RADIO models and save them to HDF5 file.
     """
     if os.path.exists(features_file):
         print(f"Features file {features_file} already exists. Skipping feature extraction.")
         return
     
-    print(f"Extracting DINOv2 features to {features_file}...")
+    print(f"Extracting {model_name} features to {features_file}...")
     
-    # Load DINOv2 model
+    # Load model based on type
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    dinov2_model = torch.hub.load('facebookresearch/dinov2', dinov2_model_name)
-    dinov2_model.eval()
-    dinov2_model.to(device)
+    
+    if 'dinov2' in model_name:
+        model = torch.hub.load('facebookresearch/dinov2', model_name)
+        # Standard ImageNet preprocessing for DINOv2
+        preprocess = transforms.Compose([
+            transforms.Resize((448, 448)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+    elif 'radio' in model_name:
+        # Load AM-RADIO from torch hub
+        model = torch.hub.load('NVlabs/RADIO', 'radio_model', version=model_name, progress=True)
+        # AM-RADIO typically uses similar preprocessing but may have different requirements
+        preprocess = transforms.Compose([
+            transforms.Resize((448, 448)),  # AM-RADIO default resolution
+            transforms.ToTensor(),
+            # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+    else:
+        raise ValueError(f"Unknown model type: {model_name}")
+    
+    model.eval()
+    model.to(device)
     
     # Freeze all parameters
-    for param in dinov2_model.parameters():
+    for param in model.parameters():
         param.requires_grad = False
     
     # Get feature dimension
-    feature_dim = get_dinov2_feature_dim(dinov2_model_name)
-    
-    # Preprocessing for DINOv2
-    preprocess = transforms.Compose([
-        # transforms.Resize((224, 224)),
-        transforms.Resize((448, 448)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
+    feature_dim = get_feature_dim(model_name)
     
     filenames = df['filename_index'].values
     labels = df['taxonID_index'].values
@@ -291,14 +331,22 @@ def extract_dinov2_features(df, image_path, features_file, dinov2_model_name='di
         filenames_ds = h5f.create_dataset('filenames', shape=(len(filenames),), dtype=h5py.string_dtype())
         
         with torch.no_grad():
-            for i, (fname, label) in enumerate(tqdm.tqdm(zip(filenames, labels), total=len(filenames), desc="Extracting features")):
+            for i, (fname, label) in enumerate(tqdm.tqdm(zip(filenames, labels), total=len(filenames), desc=f"Extracting {model_name} features")):
                 # Load and preprocess image
                 img_path = os.path.join(image_path, fname)
                 image = Image.open(img_path).convert('RGB')
                 img_tensor = preprocess(image).unsqueeze(0).to(device)
                 
                 # Extract features
-                features = dinov2_model(img_tensor).cpu().numpy().squeeze()
+                if 'dinov2' in model_name:
+                    features = model(img_tensor).cpu().numpy().squeeze()
+                elif 'radio' in model_name:
+                    # AM-RADIO returns a dictionary, extract the features
+                    output, _ = model(img_tensor)
+                    if isinstance(output, dict):
+                        features = output['embedding'].cpu().numpy().squeeze()
+                    else:
+                        features = output.cpu().numpy().squeeze()
                 
                 # Store in HDF5
                 features_ds[i] = features
@@ -308,14 +356,14 @@ def extract_dinov2_features(df, image_path, features_file, dinov2_model_name='di
     print(f"Features saved to {features_file}")
     
     # Clean up GPU memory
-    del dinov2_model
+    del model
     torch.cuda.empty_cache() if torch.cuda.is_available() else None
 
 class FungiFeatureDataset(Dataset):
     """
-    Dataset that loads pre-computed DINOv2 features and optionally metadata features from HDF5 files.
+    Dataset that loads pre-computed image features (DINOv2 or AM-RADIO) and optionally metadata features from HDF5 files.
     If metadata_file is provided, concatenates them into a single feature vector.
-    If metadata_file is None, returns only DINOv2 features.
+    If metadata_file is None, returns only image features.
     """
     def __init__(self, features_file, metadata_file=None):
         self.features_file = features_file
@@ -325,9 +373,9 @@ class FungiFeatureDataset(Dataset):
         # Load basic info from features file
         with h5py.File(features_file, 'r') as h5f:
             self.length = h5f['features'].shape[0]
-            self.dinov2_filenames = [fname.decode() for fname in h5f['filenames'][:]]
+            self.image_filenames = [fname.decode() for fname in h5f['filenames'][:]]
             self.labels = h5f['labels'][:]
-            self.dinov2_feature_dim = h5f['features'].shape[1]
+            self.image_feature_dim = h5f['features'].shape[1]
         
         if self.use_metadata:
             # Load metadata info and verify compatibility
@@ -336,24 +384,24 @@ class FungiFeatureDataset(Dataset):
                 self.metadata_feature_dim = h5f['features'].shape[1]  # CLIP embedding dimension (512)
                 
             # Verify that filenames match between both files
-            assert self.dinov2_filenames == metadata_filenames, "Filenames must match between DINOv2 and metadata files"
+            assert self.image_filenames == metadata_filenames, "Filenames must match between image and metadata files"
 
-            self.total_feature_dim = self.dinov2_feature_dim + self.metadata_feature_dim
-            print(f"Combined feature dimensions: DINOv2({self.dinov2_feature_dim}) + CLIP Text Embeddings({self.metadata_feature_dim}) = {self.total_feature_dim}")
+            self.total_feature_dim = self.image_feature_dim + self.metadata_feature_dim
+            print(f"Combined feature dimensions: Image Features({self.image_feature_dim}) + CLIP Text Embeddings({self.metadata_feature_dim}) = {self.total_feature_dim}")
         else:
-            # Only using DINOv2 features
-            self.total_feature_dim = self.dinov2_feature_dim
-            print(f"Using DINOv2 features only: dimension = {self.dinov2_feature_dim}")
+            # Only using image features
+            self.total_feature_dim = self.image_feature_dim
+            print(f"Using image features only: dimension = {self.image_feature_dim}")
     
     def __len__(self):
         return self.length
     
     def __getitem__(self, idx):
-        # Load DINOv2 features
+        # Load image features
         with h5py.File(self.features_file, 'r') as h5f:
-            dinov2_features = torch.tensor(h5f['features'][idx], dtype=torch.float32)
+            image_features = torch.tensor(h5f['features'][idx], dtype=torch.float32)
             label = int(self.labels[idx])
-            filename = self.dinov2_filenames[idx]
+            filename = self.image_filenames[idx]
         
         if self.use_metadata:
             # Load CLIP text embeddings from metadata file
@@ -361,11 +409,11 @@ class FungiFeatureDataset(Dataset):
                 metadata_features = torch.tensor(h5f['features'][idx], dtype=torch.float32)
             
             # Concatenate features
-            combined_features = torch.cat([dinov2_features, metadata_features], dim=0)
+            combined_features = torch.cat([image_features, metadata_features], dim=0)
             return combined_features, label, filename
         else:
-            # Return only DINOv2 features
-            return dinov2_features, label, filename
+            # Return only image features
+            return image_features, label, filename
 
 class LinearClassifier(nn.Module):
     """
@@ -438,10 +486,10 @@ def load_features_and_labels(features_file):
     return features, labels, filenames
 
 def load_combined_features_and_labels(features_file, metadata_file):
-    """Load combined DINOv2 and CLIP text embedding features from HDF5 files into numpy arrays."""
-    # Load DINOv2 features
+    """Load combined image features (DINOv2/AM-RADIO) and CLIP text embedding features from HDF5 files into numpy arrays."""
+    # Load image features
     with h5py.File(features_file, 'r') as h5f:
-        dinov2_features = h5f['features'][:]
+        image_features = h5f['features'][:]
         labels = h5f['labels'][:]
         filenames = [fname.decode() for fname in h5f['filenames'][:]]
     
@@ -451,12 +499,12 @@ def load_combined_features_and_labels(features_file, metadata_file):
         metadata_filenames = [fname.decode() for fname in h5f['filenames'][:]]
     
     # Verify filename order matches
-    assert filenames == metadata_filenames, "Filenames must match between DINOv2 and metadata files"
+    assert filenames == metadata_filenames, "Filenames must match between image and metadata files"
     
     # Combine features
-    combined_features = np.concatenate([dinov2_features, clip_features], axis=1)
+    combined_features = np.concatenate([image_features, clip_features], axis=1)
     
-    print(f"Combined features shape: DINOv2({dinov2_features.shape[1]}) + CLIP Text Embeddings({clip_features.shape[1]}) = {combined_features.shape[1]}")
+    print(f"Combined features shape: Image Features({image_features.shape[1]}) + CLIP Text Embeddings({clip_features.shape[1]}) = {combined_features.shape[1]}")
     
     return combined_features, labels, filenames
 
@@ -958,13 +1006,15 @@ def evaluate_linear_on_test_set(test_features_file, test_metadata_file, checkpoi
     
     print(f"Linear results saved to {output_csv_path}")
 
-def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name='dinov2_vitg14', classifier_type='linear', use_metadata=False):
+def train_fungi_network(data_file, image_path, checkpoint_dir, model_name='dinov2_vitg14', classifier_type='linear', use_metadata=False):
     """
-    Train the DINOv2 + classifier and save the best models based on validation accuracy and loss.
+    Train the image feature extractor + classifier and save the best models based on validation accuracy and loss.
     Supports linear, XGBoost, and Transformer classifiers with optional metadata features.
+    Supports both DINOv2 and AM-RADIO feature extractors.
     
     Args:
-        use_metadata: If True, use both DinoV2 and metadata features. If False, use only DinoV2 features.
+        model_name: Name of the model to use ('dinov2_vitg14', 'dinov2_vitb14', 'radio_v1', etc.)
+        use_metadata: If True, use both image and metadata features. If False, use only image features.
     """
     # Ensure checkpoint directory exists
     ensure_folder(checkpoint_dir)
@@ -976,8 +1026,8 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
     print('Training size', len(train_df))
     print('Validation size', len(val_df))
 
-    # Feature extraction step - extract and save DINOv2 features
-    features_dir = os.path.join(ROOT_DIR, 'data', 'features', dinov2_model_name)
+    # Feature extraction step - extract and save image features
+    features_dir = os.path.join(ROOT_DIR, 'data', 'features', model_name)
     ensure_folder(features_dir)
     
     train_features_file = os.path.join(features_dir, 'train_features.h5')
@@ -990,15 +1040,22 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
     val_metadata_file = os.path.join(metadata_dir, 'val_metadata.h5')
 
     print("=== Feature Extraction Phase ===")
-    extract_dinov2_features(train_df, image_path, train_features_file, dinov2_model_name)
-    extract_dinov2_features(val_df, image_path, val_features_file, dinov2_model_name)
+    # Use appropriate feature extraction function based on model type
+    if 'dinov2' in model_name:
+        extract_dinov2_features(train_df, image_path, train_features_file, model_name)
+        extract_dinov2_features(val_df, image_path, val_features_file, model_name)
+    elif 'radio' in model_name:
+        extract_radio_features(train_df, image_path, train_features_file, model_name)
+        extract_radio_features(val_df, image_path, val_features_file, model_name)
+    else:
+        raise ValueError(f"Unknown model type: {model_name}")
     
     if use_metadata:
         extract_metadata_features(train_df, train_metadata_file)
         extract_metadata_features(val_df, val_metadata_file)
-        print("=== Feature Extraction Complete (DinoV2 + Metadata) ===")
+        print(f"=== Feature Extraction Complete ({model_name} + Metadata) ===")
     else:
-        print("=== Feature Extraction Complete (DinoV2 only) ===")
+        print(f"=== Feature Extraction Complete ({model_name} only) ===")
 
     # Branch based on classifier type
     if classifier_type == 'xgboost':
@@ -1018,10 +1075,10 @@ def train_fungi_network(data_file, image_path, checkpoint_dir, dinov2_model_name
     else:
         raise ValueError(f"Unknown classifier type: {classifier_type}")
 
-def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_name, dinov2_model_name='dinov2_vitg14', classifier_type='linear', use_metadata=False):
+def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_name, model_name='dinov2_vitg14', classifier_type='linear', use_metadata=False):
     """
     Evaluate classifier on the test set and save predictions to a CSV file.
-    Supports both linear and XGBoost classifiers.
+    Supports linear, XGBoost, and Transformer classifiers with both DINOv2 and AM-RADIO models.
     """
     # Ensure checkpoint directory exists
     ensure_folder(checkpoint_dir)
@@ -1030,7 +1087,7 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
     test_df = df[df['filename_index'].str.startswith('fungi_test')]
     
     # Extract features for test set
-    features_dir = os.path.join(ROOT_DIR, 'data', 'features', dinov2_model_name)
+    features_dir = os.path.join(ROOT_DIR, 'data', 'features', model_name)
     ensure_folder(features_dir)
     test_features_file = os.path.join(features_dir, 'test_features.h5')
 
@@ -1039,13 +1096,19 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
     test_metadata_file = os.path.join(metadata_dir, 'test_metadata.h5')
     
     print("=== Test Feature Extraction ===")
-    extract_dinov2_features(test_df, image_path, test_features_file, dinov2_model_name)
+    # Use appropriate feature extraction function based on model type
+    if 'dinov2' in model_name:
+        extract_dinov2_features(test_df, image_path, test_features_file, model_name)
+    elif 'radio' in model_name:
+        extract_radio_features(test_df, image_path, test_features_file, model_name)
+    else:
+        raise ValueError(f"Unknown model type: {model_name}")
     
     if use_metadata:
         extract_metadata_features(test_df, test_metadata_file)
-        print("=== Test Feature Extraction Complete (DinoV2 + Metadata) ===")
+        print(f"=== Test Feature Extraction Complete ({model_name} + Metadata) ===")
     else:
-        print("=== Test Feature Extraction Complete (DinoV2 only) ===")
+        print(f"=== Test Feature Extraction Complete ({model_name} only) ===")
     
     # Branch based on classifier type and feature mode
     if classifier_type == 'xgboost':
@@ -1065,10 +1128,10 @@ def evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session_
 
 if __name__ == "__main__":
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description="Train DINOv2 + classifier for fungi classification")
-    parser.add_argument('--dinov2_model', type=str, default='dinov2_vitg14',
-                        choices=['dinov2_vits14', 'dinov2_vitb14', 'dinov2_vitl14', 'dinov2_vitg14'],
-                        help='DINOv2 model size to use (default: dinov2_vitg14)')
+    parser = argparse.ArgumentParser(description="Train image feature extractor + classifier for fungi classification")
+    parser.add_argument('--model', type=str, default='dinov2_vitg14',
+                        choices=['dinov2_vits14', 'dinov2_vitb14', 'dinov2_vitl14', 'dinov2_vitg14', 'c-radio_v3-g'],
+                        help='Feature extraction model to use (default: dinov2_vitg14)')
     parser.add_argument('--classifier', type=str, default='linear',
                         choices=['linear', 'xgboost', 'transformer'],
                         help='Classifier type to use (default: linear)')
@@ -1079,7 +1142,7 @@ if __name__ == "__main__":
     parser.add_argument('--session', type=str, default=None,
                         help='Session name for experiment (default: auto-generated based on model)')
     parser.add_argument('--use_metadata', action='store_true', default=False,
-                        help='Use metadata features in addition to DinoV2 features (default: False, DinoV2 only)')
+                        help='Use metadata features in addition to image features (default: False, image features only)')
     
     args = parser.parse_args()
     
@@ -1099,12 +1162,20 @@ if __name__ == "__main__":
 
     # Set session name based on model if not provided
     if args.session is None:
-        model_size = args.dinov2_model.replace('dinov2_', '').upper()
+        if 'dinov2' in args.model:
+            model_size = args.model.replace('dinov2_', '').upper()
+            model_prefix = f"DinoV2{model_size}"
+        elif 'radio' in args.model:
+            model_version = args.model.replace('radio_', '').upper()
+            model_prefix = f"Radio{model_version}"
+        else:
+            model_prefix = args.model.upper()
+            
         classifier_name = args.classifier.capitalize()
         if args.use_metadata:
-            session = f"DinoV2{model_size}{classifier_name}_MM"
+            session = f"{model_prefix}{classifier_name}_MM"
         else:
-            session = f"DinoV2{model_size}{classifier_name}"
+            session = f"{model_prefix}{classifier_name}"
     else:
         session = args.session
 
@@ -1112,8 +1183,8 @@ if __name__ == "__main__":
     checkpoint_dir = ROOT_DIR / 'results' / session
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"Starting training with DINOv2 + {args.classifier.capitalize()} classifier...")
-    print(f"DINOv2 Model: {args.dinov2_model}")
+    print(f"Starting training with {args.model} + {args.classifier.capitalize()} classifier...")
+    print(f"Feature Extraction Model: {args.model}")
     print(f"Classifier: {args.classifier}")
     print(f"Use Metadata: {args.use_metadata}")
     print(f"Session: {session}")
@@ -1121,5 +1192,5 @@ if __name__ == "__main__":
     print(f"Image path: {image_path}")
     print(f"Results will be saved to: {checkpoint_dir}")
     
-    train_fungi_network(data_file, image_path, checkpoint_dir, args.dinov2_model, args.classifier, args.use_metadata)
-    evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session, args.dinov2_model, args.classifier, args.use_metadata)
+    train_fungi_network(data_file, image_path, checkpoint_dir, args.model, args.classifier, args.use_metadata)
+    evaluate_network_on_test_set(data_file, image_path, checkpoint_dir, session, args.model, args.classifier, args.use_metadata)
