@@ -22,6 +22,7 @@ import joblib
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
+from sklearn.decomposition import PCA
 from seesaw_loss import SeesawLoss
 import clip
 
@@ -415,6 +416,48 @@ class FungiFeatureDataset(Dataset):
             # Return only image features
             return image_features, label, filename
 
+class FungiFeatureDatasetPCA(Dataset):
+    """
+    Dataset that loads pre-computed features and applies PCA transformation.
+    Used for neural network training with PCA-preprocessed features.
+    """
+    def __init__(self, features_file, metadata_file=None, pca_model=None):
+        self.features_file = features_file
+        self.metadata_file = metadata_file
+        self.use_metadata = metadata_file is not None
+        self.pca_model = pca_model
+        
+        # Load and preprocess all features upfront
+        if self.use_metadata:
+            features, labels, filenames = load_combined_features_and_labels(features_file, metadata_file)
+        else:
+            features, labels, filenames = load_features_and_labels(features_file)
+        
+        # Apply PCA if model is provided
+        if self.pca_model is not None:
+            features = self.pca_model.transform(features)
+            print(f"Applied PCA transformation: {features.shape[1]} components")
+        
+        # Remove invalid labels
+        valid_mask = labels >= 0
+        self.features = features[valid_mask]
+        self.labels = labels[valid_mask]
+        self.filenames = [filenames[i] for i in range(len(filenames)) if valid_mask[i]]
+        
+        self.length = len(self.features)
+        self.feature_dim = self.features.shape[1]
+        
+        print(f"Dataset loaded: {self.length} samples, {self.feature_dim} features")
+    
+    def __len__(self):
+        return self.length
+    
+    def __getitem__(self, idx):
+        features = torch.tensor(self.features[idx], dtype=torch.float32)
+        label = int(self.labels[idx])
+        filename = self.filenames[idx]
+        return features, label, filename
+
 class LinearClassifier(nn.Module):
     """
     Simple linear classifier for pre-computed features.
@@ -508,6 +551,65 @@ def load_combined_features_and_labels(features_file, metadata_file):
     
     return combined_features, labels, filenames
 
+def apply_pca_to_features(X_train, X_val, X_test=None, n_components=None, variance_threshold=0.95):
+    """
+    Apply PCA to reduce dimensionality of features.
+    
+    Args:
+        X_train: Training features (numpy array)
+        X_val: Validation features (numpy array)
+        X_test: Test features (numpy array, optional)
+        n_components: Number of components to keep (if None, use variance_threshold)
+        variance_threshold: Keep components that explain this much variance (default: 0.95)
+    
+    Returns:
+        Tuple of (X_train_pca, X_val_pca, X_test_pca, pca_model)
+        X_test_pca is None if X_test was None
+    """
+    print(f"Original feature dimension: {X_train.shape[1]}")
+    
+    # Fit PCA on training data
+    if n_components is None:
+        # Determine n_components based on variance threshold
+        pca_temp = PCA()
+        pca_temp.fit(X_train)
+        cumulative_variance = np.cumsum(pca_temp.explained_variance_ratio_)
+        n_components = np.argmax(cumulative_variance >= variance_threshold) + 1
+        print(f"Using {n_components} components to explain {variance_threshold:.1%} of variance")
+    
+    # Apply PCA with determined number of components
+    pca = PCA(n_components=n_components, random_state=42)
+    X_train_pca = pca.fit_transform(X_train)
+    X_val_pca = pca.transform(X_val)
+    
+    X_test_pca = None
+    if X_test is not None:
+        X_test_pca = pca.transform(X_test)
+    
+    explained_variance = np.sum(pca.explained_variance_ratio_)
+    print(f"PCA reduced features from {X_train.shape[1]} to {n_components} dimensions")
+    print(f"Explained variance: {explained_variance:.3f}")
+    
+    return X_train_pca, X_val_pca, X_test_pca, pca
+
+def save_pca_model(pca_model, checkpoint_dir):
+    """Save PCA model to checkpoint directory."""
+    pca_path = os.path.join(checkpoint_dir, "pca_model.pkl")
+    joblib.dump(pca_model, pca_path)
+    print(f"PCA model saved to {pca_path}")
+    return pca_path
+
+def load_pca_model(checkpoint_dir):
+    """Load PCA model from checkpoint directory."""
+    pca_path = os.path.join(checkpoint_dir, "pca_model.pkl")
+    if os.path.exists(pca_path):
+        pca_model = joblib.load(pca_path)
+        print(f"PCA model loaded from {pca_path}")
+        return pca_model
+    else:
+        print(f"PCA model not found at {pca_path}")
+        return None
+
 def train_xgboost_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, use_metadata=True):
     """Train XGBoost classifier on pre-computed features."""
     if use_metadata:
@@ -535,7 +637,14 @@ def train_xgboost_classifier(train_features_file, val_features_file, train_metad
     if use_metadata:
         print(f"Combined feature dimension: {X_train.shape[1]}")
     else:
-        print(f"DinoV2 feature dimension: {X_train.shape[1]}")
+        print(f"Image feature dimension: {X_train.shape[1]}")
+    
+    # Apply PCA preprocessing
+    print("=== Applying PCA preprocessing ===")
+    X_train_pca, X_val_pca, _, pca_model = apply_pca_to_features(X_train, X_val, variance_threshold=0.99)
+    
+    # Save PCA model
+    save_pca_model(pca_model, checkpoint_dir)
     
     # Create XGBoost classifier
     xgb_model = xgb.XGBClassifier(
@@ -550,15 +659,15 @@ def train_xgboost_classifier(train_features_file, val_features_file, train_metad
         n_jobs=4
     )
     
-    # Train the model
+    # Train the model with PCA-transformed features
     xgb_model.fit(
-        X_train, y_train,
-        eval_set=[(X_val, y_val)],
+        X_train_pca, y_train,
+        eval_set=[(X_val_pca, y_val)],
         verbose=True
     )
     
     # Evaluate on validation set
-    val_pred = xgb_model.predict(X_val)
+    val_pred = xgb_model.predict(X_val_pca)
     val_accuracy = accuracy_score(y_val, val_pred)
     print(f"Validation accuracy: {val_accuracy:.4f}")
     
@@ -576,9 +685,18 @@ def evaluate_xgboost_on_test_set(test_features_file, test_metadata_file, checkpo
         # Load combined test data
         X_test, _, filenames = load_combined_features_and_labels(test_features_file, test_metadata_file)
     else:
-        print("=== Evaluating XGBoost on Test Set with DinoV2 Features Only ===")
-        # Load DinoV2 test data only
+        print("=== Evaluating XGBoost on Test Set with Image Features Only ===")
+        # Load image test data only
         X_test, _, filenames = load_features_and_labels(test_features_file)
+    
+    # Load PCA model and apply transformation
+    pca_model = load_pca_model(checkpoint_dir)
+    if pca_model is not None:
+        print("=== Applying PCA transformation to test features ===")
+        X_test = pca_model.transform(X_test)
+        print(f"Test features transformed from original dimension to {X_test.shape[1]} PCA components")
+    else:
+        print("Warning: PCA model not found, using original features")
     
     # Load the trained model
     model_path = os.path.join(checkpoint_dir, "best_xgboost_model.pkl")
@@ -597,20 +715,38 @@ def evaluate_xgboost_on_test_set(test_features_file, test_metadata_file, checkpo
     print(f"XGBoost results saved to {output_csv_path}")
 
 def train_transformer_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes, use_metadata=True):
-    """Train Transformer classifier on pre-computed features."""
+    """Train Transformer classifier on pre-computed features with PCA preprocessing."""
+    
+    # First, load raw features to fit PCA
     if use_metadata:
         print("=== Training Transformer Classifier with Combined Features ===")
-        # Initialize DataLoaders with combined features
-        train_dataset = FungiFeatureDataset(train_features_file, train_metadata_file)
-        valid_dataset = FungiFeatureDataset(val_features_file, val_metadata_file)
-        feature_dim = train_dataset.total_feature_dim
+        X_train, y_train, _ = load_combined_features_and_labels(train_features_file, train_metadata_file)
+        X_val, y_val, _ = load_combined_features_and_labels(val_features_file, val_metadata_file)
     else:
-        print("=== Training Transformer Classifier with DinoV2 Features Only ===")
-        # Initialize DataLoaders with DinoV2 features only
-        train_dataset = FungiFeatureDataset(train_features_file, metadata_file=None)
-        valid_dataset = FungiFeatureDataset(val_features_file, metadata_file=None)
-        feature_dim = train_dataset.total_feature_dim
-        print(f"DinoV2 feature dimension: {feature_dim}")
+        print("=== Training Transformer Classifier with Image Features Only ===")
+        X_train, y_train, _ = load_features_and_labels(train_features_file)
+        X_val, y_val, _ = load_features_and_labels(val_features_file)
+    
+    # Remove samples with invalid labels
+    valid_train_mask = y_train >= 0
+    valid_val_mask = y_val >= 0
+    
+    X_train = X_train[valid_train_mask]
+    y_train = y_train[valid_train_mask]
+    X_val = X_val[valid_val_mask]
+    y_val = y_val[valid_val_mask]
+    
+    # Apply PCA preprocessing
+    print("=== Applying PCA preprocessing ===")
+    X_train_pca, X_val_pca, _, pca_model = apply_pca_to_features(X_train, X_val, variance_threshold=0.99)
+    
+    # Save PCA model
+    save_pca_model(pca_model, checkpoint_dir)
+    
+    # Create datasets with PCA-transformed features
+    train_dataset = FungiFeatureDatasetPCA(train_features_file, train_metadata_file if use_metadata else None, pca_model)
+    valid_dataset = FungiFeatureDatasetPCA(val_features_file, val_metadata_file if use_metadata else None, pca_model)
+    feature_dim = train_dataset.feature_dim
     
     train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True, num_workers=4)
     valid_loader = DataLoader(valid_dataset, batch_size=256, shuffle=False, num_workers=4)
@@ -759,23 +895,26 @@ def train_transformer_classifier(train_features_file, val_features_file, train_m
     print("=== Transformer Training Complete ===")
 
 def evaluate_transformer_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes, use_metadata=True):
-    """Evaluate Transformer classifier on test set."""
+    """Evaluate Transformer classifier on test set with PCA preprocessing."""
+    
+    # Load PCA model
+    pca_model = load_pca_model(checkpoint_dir)
+    if pca_model is None:
+        raise ValueError("PCA model not found in checkpoint directory")
+    
     if use_metadata:
         print("=== Evaluating Transformer on Test Set with Combined Features ===")
-        # Load combined test data
-        test_dataset = FungiFeatureDataset(test_features_file, test_metadata_file)
-        feature_dim = test_dataset.total_feature_dim
+        test_dataset = FungiFeatureDatasetPCA(test_features_file, test_metadata_file, pca_model)
     else:
-        print("=== Evaluating Transformer on Test Set with DinoV2 Features Only ===")
-        # Load DinoV2 test data only
-        test_dataset = FungiFeatureDataset(test_features_file, metadata_file=None)
-        feature_dim = test_dataset.total_feature_dim
+        print("=== Evaluating Transformer on Test Set with Image Features Only ===")
+        test_dataset = FungiFeatureDatasetPCA(test_features_file, None, pca_model)
     
+    feature_dim = test_dataset.feature_dim
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    # Create and load the Transformer model with appropriate feature dimension
+    # Create and load the Transformer model with PCA feature dimension
     model = TransformerClassifier(
         feature_dim=feature_dim,
         num_classes=num_classes,
@@ -809,20 +948,38 @@ def evaluate_transformer_on_test_set(test_features_file, test_metadata_file, che
     print(f"Transformer results saved to {output_csv_path}")
 
 def train_linear_classifier(train_features_file, val_features_file, train_metadata_file, val_metadata_file, checkpoint_dir, num_classes, use_metadata=True):
-    """Train Linear classifier on pre-computed features."""
+    """Train Linear classifier on pre-computed features with PCA preprocessing."""
+    
+    # First, load raw features to fit PCA
     if use_metadata:
         print("=== Training Linear Classifier with Combined Features ===")
-        # Initialize DataLoaders with combined features (DINOv2 + metadata)
-        train_dataset = FungiFeatureDataset(train_features_file, train_metadata_file)
-        valid_dataset = FungiFeatureDataset(val_features_file, val_metadata_file)
-        feature_dim = train_dataset.total_feature_dim  # Use combined feature dimension
+        X_train, y_train, _ = load_combined_features_and_labels(train_features_file, train_metadata_file)
+        X_val, y_val, _ = load_combined_features_and_labels(val_features_file, val_metadata_file)
     else:
-        print("=== Training Linear Classifier with DinoV2 Features Only ===")
-        # Initialize DataLoaders with DinoV2 features only
-        train_dataset = FungiFeatureDataset(train_features_file, metadata_file=None)
-        valid_dataset = FungiFeatureDataset(val_features_file, metadata_file=None)
-        feature_dim = train_dataset.total_feature_dim
-        print(f"DinoV2 feature dimension: {feature_dim}")
+        print("=== Training Linear Classifier with Image Features Only ===")
+        X_train, y_train, _ = load_features_and_labels(train_features_file)
+        X_val, y_val, _ = load_features_and_labels(val_features_file)
+    
+    # Remove samples with invalid labels
+    valid_train_mask = y_train >= 0
+    valid_val_mask = y_val >= 0
+    
+    X_train = X_train[valid_train_mask]
+    y_train = y_train[valid_train_mask]
+    X_val = X_val[valid_val_mask]
+    y_val = y_val[valid_val_mask]
+    
+    # Apply PCA preprocessing
+    print("=== Applying PCA preprocessing ===")
+    X_train_pca, X_val_pca, _, pca_model = apply_pca_to_features(X_train, X_val, variance_threshold=0.99)
+    
+    # Save PCA model
+    save_pca_model(pca_model, checkpoint_dir)
+    
+    # Create datasets with PCA-transformed features
+    train_dataset = FungiFeatureDatasetPCA(train_features_file, train_metadata_file if use_metadata else None, pca_model)
+    valid_dataset = FungiFeatureDatasetPCA(val_features_file, val_metadata_file if use_metadata else None, pca_model)
+    feature_dim = train_dataset.feature_dim
     
     train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True, num_workers=4)
     valid_loader = DataLoader(valid_dataset, batch_size=256, shuffle=False, num_workers=4)
@@ -831,7 +988,7 @@ def train_linear_classifier(train_features_file, val_features_file, train_metada
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
     
-    # Create Linear classifier model with appropriate feature dimension
+    # Create Linear classifier model with PCA feature dimension
     model = LinearClassifier(feature_dim, num_classes)
     model.to(device)
 
@@ -964,23 +1121,26 @@ def train_linear_classifier(train_features_file, val_features_file, train_metada
     print("=== Linear Training Complete ===")
 
 def evaluate_linear_on_test_set(test_features_file, test_metadata_file, checkpoint_dir, session_name, num_classes, use_metadata=True):
-    """Evaluate Linear classifier on test set."""
+    """Evaluate Linear classifier on test set with PCA preprocessing."""
+    
+    # Load PCA model
+    pca_model = load_pca_model(checkpoint_dir)
+    if pca_model is None:
+        raise ValueError("PCA model not found in checkpoint directory")
+    
     if use_metadata:
         print("=== Evaluating Linear Classifier on Test Set with Combined Features ===")
-        # Use combined features (DINOv2 + metadata) for evaluation
-        test_dataset = FungiFeatureDataset(test_features_file, test_metadata_file)
-        feature_dim = test_dataset.total_feature_dim  # Use combined feature dimension
+        test_dataset = FungiFeatureDatasetPCA(test_features_file, test_metadata_file, pca_model)
     else:
-        print("=== Evaluating Linear Classifier on Test Set with DinoV2 Features Only ===")
-        # Use DinoV2 features only for evaluation
-        test_dataset = FungiFeatureDataset(test_features_file, metadata_file=None)
-        feature_dim = test_dataset.total_feature_dim
+        print("=== Evaluating Linear Classifier on Test Set with Image Features Only ===")
+        test_dataset = FungiFeatureDatasetPCA(test_features_file, None, pca_model)
     
+    feature_dim = test_dataset.feature_dim
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False, num_workers=4)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    # Create and load the Linear classifier model with appropriate feature dimension
+    # Create and load the Linear classifier model with PCA feature dimension
     model = LinearClassifier(feature_dim, num_classes)
     
     # Load the best model
