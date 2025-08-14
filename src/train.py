@@ -492,11 +492,9 @@ class FungiFeatureDatasetSeparatePCA(Dataset):
                 features = self.image_pca_model.transform(features)
                 print(f"Applied image PCA transformation: {features.shape[1]} components")
         
-        # Remove invalid labels
-        valid_mask = labels >= 0
-        self.features = features[valid_mask]
-        self.labels = labels[valid_mask]
-        self.filenames = [filenames[i] for i in range(len(filenames)) if valid_mask[i]]
+        self.features = features
+        self.labels = labels
+        self.filenames = filenames
         
         self.length = len(self.features)
         self.feature_dim = self.features.shape[1]
@@ -795,19 +793,6 @@ def train_xgboost_classifier(train_features_file, val_features_file, train_metad
         image_val, y_val, _ = load_features_and_labels(val_features_file)
         clip_train = clip_val = None
     
-    # Remove samples with invalid labels
-    valid_train_mask = y_train >= 0
-    valid_val_mask = y_val >= 0
-    
-    image_train = image_train[valid_train_mask]
-    image_val = image_val[valid_val_mask]
-    y_train = y_train[valid_train_mask]
-    y_val = y_val[valid_val_mask]
-    
-    if use_metadata:
-        clip_train = clip_train[valid_train_mask]
-        clip_val = clip_val[valid_val_mask]
-    
     print(f"Training samples: {len(image_train)}")
     print(f"Validation samples: {len(image_val)}")
     
@@ -931,19 +916,6 @@ def train_transformer_classifier(train_features_file, val_features_file, train_m
         image_train, y_train, _ = load_features_and_labels(train_features_file)
         image_val, y_val, _ = load_features_and_labels(val_features_file)
         clip_train = clip_val = None
-    
-    # Remove samples with invalid labels
-    valid_train_mask = y_train >= 0
-    valid_val_mask = y_val >= 0
-    
-    image_train = image_train[valid_train_mask]
-    image_val = image_val[valid_val_mask]
-    y_train = y_train[valid_train_mask]
-    y_val = y_val[valid_val_mask]
-    
-    if use_metadata:
-        clip_train = clip_train[valid_train_mask]
-        clip_val = clip_val[valid_val_mask]
     
     # Apply separate PCA preprocessing
     if use_metadata:
@@ -1190,19 +1162,6 @@ def train_linear_classifier(train_features_file, val_features_file, train_metada
         image_train, y_train, _ = load_features_and_labels(train_features_file)
         image_val, y_val, _ = load_features_and_labels(val_features_file)
         clip_train = clip_val = None
-    
-    # Remove samples with invalid labels
-    valid_train_mask = y_train >= 0
-    valid_val_mask = y_val >= 0
-    
-    image_train = image_train[valid_train_mask]
-    image_val = image_val[valid_val_mask]
-    y_train = y_train[valid_train_mask]
-    y_val = y_val[valid_val_mask]
-    
-    if use_metadata:
-        clip_train = clip_train[valid_train_mask]
-        clip_val = clip_val[valid_val_mask]
     
     # Apply separate PCA preprocessing
     if use_metadata:
