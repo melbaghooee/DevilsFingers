@@ -157,15 +157,15 @@ def extract_metadata_features(df, metadata_file):
     
     # Load CLIP model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    clip_model, preprocess = clip.load("ViT-B/32", device=device)
+    clip_model, preprocess = clip.load("ViT-L/14", device=device)
     clip_model.eval()
     
     # Freeze all parameters
     for param in clip_model.parameters():
         param.requires_grad = False
     
-    # Get the text embedding dimension (512 for ViT-B/32)
-    text_embedding_dim = 512
+    # Get the text embedding dimension (768 for ViT-L/14)
+    text_embedding_dim = 768
     
     filenames = df['filename_index'].values
     num_samples = len(filenames)
